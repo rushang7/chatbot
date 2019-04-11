@@ -34,7 +34,7 @@ public class CreateStepStream {
 
     @Autowired
     public CreateStepStream() {
-        defaultStreamConfiguration = new Properties();
+        this.defaultStreamConfiguration = new Properties();
         defaultStreamConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
     }
 
@@ -54,8 +54,8 @@ public class CreateStepStream {
             ObjectNode nodeWithQuestion = chatNode.deepCopy();
             nodeWithQuestion.set("question", TextNode.valueOf(config.get("message").asText()));
 
-//            conversationStateRepository.updateActiveNodeForConversation(chatNode.get("conversation_id").asText(),
-//                    config.get("name").asText());
+            conversationStateRepository.updateActiveNodeForConversation(chatNode.get("conversation_id").asText(),
+                    config.get("name").asText());
 
             return (JsonNode) nodeWithQuestion;
         }).to(sendMessageTopic, Produced.with(Serdes.String(), jsonSerde));
