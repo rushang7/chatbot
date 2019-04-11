@@ -1,0 +1,11 @@
+name : pt.renew.propertyId
+description : "Existing Property Id"
+message : "Please enter your existing property id"
+source : pt.renew.propertyId.input.answer
+validationRequired : true
+successOutput : pt.renew.propertyId.output
+failOutput : pt.propertyId.input.question
+businessValidation : true
+businessValidationURL : "https://egov-micro-dev.egovernments.org/pt-services-v2/property/_search"
+businessValidationQueryObject :  { "RequestInfo" : {} }
+businessValidationQueryParams : { "propertyId" : this.value }

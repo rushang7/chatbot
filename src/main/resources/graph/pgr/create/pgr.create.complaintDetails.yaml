@@ -1,0 +1,11 @@
+name : pgr.create.complaintDetails
+description : "Additional complaint details"
+nodeType : step
+optional : true
+validationRequired : false
+
+message : "Would you like to mention any addtional details?"
+
+question : pgr.create.complaintDetails.question
+input : pgr.create.complaintDetails.input
+output : pgr.create.complaintDetails.output

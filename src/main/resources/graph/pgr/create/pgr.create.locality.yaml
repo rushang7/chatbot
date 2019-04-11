@@ -1,0 +1,20 @@
+name : pgr.create.locality
+description : "Locality"
+nodeType : step
+optional : false
+validationRequired : true
+
+message : "What is the locality?"
+
+input : pgr.create.locality.input
+output : pgr.create.locality.output
+question : pgr.create.locality.question
+
+values :
+  class : org.egov.chatbot.values.LocalityValues
+  method : getValues
+  params :
+    tenantId : $tenantId
+
+displayValuesAsOptions : false
+fuzzyMatch : 0.9

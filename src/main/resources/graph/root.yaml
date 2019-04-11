@@ -1,0 +1,14 @@
+name : root
+nodeType : branch
+message : " Hi,\n What would you like to do :"
+
+values : [ "File a complaint", "Renew Property tax" ]
+displayValuesAsOptions : true
+fuzzyMatch : 0.7
+
+question : root.question
+input : root.input
+
+File a complaint : pgr.create.start
+Renew Property tax : pt.renew.start
+

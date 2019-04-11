@@ -1,0 +1,23 @@
+name : pgr.create.complaintType
+description : "Complaint Type"
+nodeType : step
+optional : false
+validationRequired : true
+
+message : "What is the type of complaint?"
+
+question : pgr.create.complaintType.question
+input : pgr.create.complaintType.input
+output : pgr.create.complaintType.output
+
+values :
+  class : org.egov.chatbot.values.Mdms
+  method : getValues
+  params :
+    tenantId : $tenantId
+    moduleName : "RAINMAKER-PGR"
+    masterDetailsName : "ServiceDefs"
+    filter : $.*.serviceCode
+
+displayValuesAsOptions : true
+fuzzyMatch : 0.9
