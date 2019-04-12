@@ -8,15 +8,11 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class MessageRepository {
 
+    @Autowired
     private JdbcTemplate jdbcTemplate;
 
     private static final String insertMessageQuery = "INSERT INTO eg_chat_message (message_id, conversation_id, node_id, message_content) " +
             "VALUES (?, ?, ?, ?)";
-
-    @Autowired
-    public MessageRepository(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     public int insertMessage(Message message) {
         return jdbcTemplate.update(insertMessageQuery,

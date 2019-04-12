@@ -3,30 +3,23 @@ package org.egov.chat;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import org.apache.kafka.streams.StreamsConfig;
 import org.egov.chat.streams.CreateStepStream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.web.EmbeddedServletContainerAutoConfiguration;
-import org.springframework.boot.autoconfigure.web.WebClientAutoConfiguration;
-import org.springframework.boot.autoconfigure.web.WebMvcAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.util.Properties;
 
 @ComponentScan(basePackages = { "org.egov.chat" , "org.egov.chat.config"})
-@SpringBootApplication(exclude = {EmbeddedServletContainerAutoConfiguration.class, WebMvcAutoConfiguration.class})
+@SpringBootApplication
 public class ChatBot {
 
     @Autowired
-    private static CreateStepStream createStepStream;
+    private CreateStepStream createStepStream;
 
-    public static void main(String args[]) throws Exception {
-
-        new SpringApplication().setWebEnvironment(false);
+    public static void main(String args[]) {
 
         SpringApplication.run(ChatBot.class, args);
 
@@ -38,8 +31,9 @@ public class ChatBot {
 
         JsonNode config = mapper.readTree(ChatBot.class.getClassLoader().getResource("graph/pgr/create/pgr.create.address.yaml"));
 
-        createStepStream.createQuestionStreamForConfig(config, "address-question", "send-message");
+        createStepStream.createEvaluateAnswerStreamForConfig(config, "address-answer-input", "address-answer-output", "address-question");
 
+        createStepStream.createQuestionStreamForConfig(config, "address-question", "send-message");
 
     }
 
