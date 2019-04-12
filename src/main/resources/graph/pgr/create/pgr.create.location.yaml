@@ -1,0 +1,10 @@
+name : pgr.create.location
+description : "Location of the complaint"
+nodeType : step
+
+optional : true
+validationRequired : false
+
+message : "Could you please share the location?"
+
+type : location

@@ -1,13 +1,7 @@
-root,pgr.create.start,pt.renew.start
-pgr.create.start,pgr.create.complaintType
 pgr.create.complaintType,pgr.create.locality
 pgr.create.locality,pgr.create.complaintDetails
 pgr.create.complaintDetails,pgr.create.photo
 pgr.create.photo,pgr.create.location
 pgr.create.location,pgr.create.address
 pgr.create.address,pgr.create.landmark
-pgr.create.landmark,prg.create.end
-prg.create.end
-pt.renew.start,pt.renew.propertyId
-pt.renew.propertyId,pt.renew.end
-pt.renew.end
+pgr.create.landmark

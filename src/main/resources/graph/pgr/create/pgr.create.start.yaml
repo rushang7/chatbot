@@ -1,0 +1,10 @@
+name : pgr.create.start
+description : "Starting node"
+nodeType : step
+
+optional : true
+validationRequired : false
+
+message : "File a complaint"
+
+type : text

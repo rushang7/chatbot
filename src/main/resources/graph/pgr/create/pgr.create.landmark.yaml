@@ -1,0 +1,10 @@
+name : pgr.create.landmark
+description : "Address of the complaint"
+nodeType : step
+
+optional : true
+validationRequired : false
+
+message : "Could you please enter the landmark?"
+
+type : text

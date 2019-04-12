@@ -53,12 +53,7 @@ public class GraphTest {
 
 //        CSVExporter<URI, DefaultEdge> csvExporter = new CSVExporter<>(vertexLabelProvider, CSVFormat.ADJACENCY_LIST, ',') ;
 
-        CSVExporter<String, DefaultEdge> csvExporter = new CSVExporter<>(new ComponentNameProvider<String>() {
-            @Override
-            public String getName(String s) {
-                return s;
-            }
-        }, CSVFormat.ADJACENCY_LIST, ',');
+        CSVExporter<String, DefaultEdge> csvExporter = new CSVExporter<>(s -> s, CSVFormat.ADJACENCY_LIST, ',');
 
         csvExporter.exportGraph(stringGraph, writer);
 

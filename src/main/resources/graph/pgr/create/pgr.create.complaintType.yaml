@@ -6,10 +6,6 @@ validationRequired : true
 
 message : "What is the type of complaint?"
 
-question : pgr.create.complaintType.question
-input : pgr.create.complaintType.input
-output : pgr.create.complaintType.output
-
 values :
   class : org.egov.chatbot.values.Mdms
   method : getValues

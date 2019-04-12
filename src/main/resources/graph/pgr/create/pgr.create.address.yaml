@@ -8,7 +8,3 @@ validationRequired : false
 message : "Could you please enter the address?"
 
 type : text
-
-question : pgr.create.address.question
-input : pgr.create.address.input
-output : pgr.create.address.output
