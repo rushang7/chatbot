@@ -2,7 +2,7 @@
 <project version="4">
   <component name="DBNavigator.Project.DataEditorManager">
     <record-view-column-sorting-type value="BY_INDEX" />
-    <value-preview-text-wrapping value="false" />
+    <value-preview-text-wrapping value="true" />
     <value-preview-pinned value="false" />
   </component>
   <component name="DBNavigator.Project.DataExportManager">
@@ -24,27 +24,21 @@
     <autoscroll-from-editor value="true" />
     <show-object-properties value="true" />
     <loaded-nodes>
-      <connection connection-id="ed001b05-32b1-456f-ba0d-8dc28861a9a9">
-        <schema name="information_schema" object-types="table, view, function" />
-        <schema name="pg_catalog" object-types="table, view, function" />
-        <schema name="public" object-types="constraint, sequence, column, table, view, index, function, dataset trigger" />
+      <connection connection-id="a9d88965-65b2-45e8-9423-0bef3c08fd0f">
+        <schema name="public" object-types="function, view, sequence, table, index" />
       </connection>
     </loaded-nodes>
   </component>
   <component name="DBNavigator.Project.DatabaseConsoleManager">
-    <connection id="ed001b05-32b1-456f-ba0d-8dc28861a9a9">
-      <console name="Connection" type="STANDARD" schema="public" session="Main"><![CDATA[select * from eg_chat_conversation_state;]]></console>
+    <connection id="a9d88965-65b2-45e8-9423-0bef3c08fd0f">
+      <console name="Connection" type="STANDARD" schema="information_schema" session="Main" />
     </connection>
   </component>
   <component name="DBNavigator.Project.DatabaseFileManager">
     <open-files />
   </component>
   <component name="DBNavigator.Project.DatabaseSessionManager">
-    <connection id="ed001b05-32b1-456f-ba0d-8dc28861a9a9" />
-  </component>
-  <component name="DBNavigator.Project.DatasetFilterManager">
-    <filter-actions connection-id="ed001b05-32b1-456f-ba0d-8dc28861a9a9" dataset="public.eg_chat_conversation_state" active-filter-id="EMPTY_FILTER" />
-    <filter-actions connection-id="ed001b05-32b1-456f-ba0d-8dc28861a9a9" dataset="public.eg_chat_user" active-filter-id="" />
+    <connection id="a9d88965-65b2-45e8-9423-0bef3c08fd0f" />
   </component>
   <component name="DBNavigator.Project.EditorStateManager">
     <last-used-providers />
@@ -69,7 +63,7 @@
   </component>
   <component name="DBNavigator.Project.Settings">
     <connections>
-      <connection id="ed001b05-32b1-456f-ba0d-8dc28861a9a9" active="true">
+      <connection id="a9d88965-65b2-45e8-9423-0bef3c08fd0f" active="true">
         <database>
           <name value="Connection" />
           <description value="" />
@@ -89,7 +83,7 @@
           <deprecated-pwd value="cG9zdGdyZXM=" />
         </database>
         <properties>
-          <auto-commit value="false" />
+          <auto-commit value="true" />
         </properties>
         <ssh-settings>
           <active value="false" />

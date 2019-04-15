@@ -62,7 +62,7 @@ public class CreateStepStream {
             ObjectNode nodeWithQuestion = chatNode.deepCopy();
             nodeWithQuestion.set("question", TextNode.valueOf(config.get("message").asText()));
 
-            conversationStateRepository.updateActiveNodeForConversation(chatNode.get("conversation_id").asText(),
+            conversationStateRepository.updateActiveNodeForConversation(chatNode.get("conversationId").asText(),
                     config.get("name").asText());
 
             return (JsonNode) nodeWithQuestion;
@@ -70,7 +70,7 @@ public class CreateStepStream {
 
         startStream(builder, streamConfiguration);
 
-        log.info("Stream started : " + config.get("name").asText());
+        log.info("Stream started : " + streamName + ", from : " + questionTopic + ", to : " + sendMessageTopic);
     }
 
     public void createEvaluateAnswerStreamForConfig(JsonNode config, String answerInputTopic, String answerOutputTopic, String questionTopic) {
@@ -91,7 +91,7 @@ public class CreateStepStream {
         branches[0].mapValues(chatNode -> {
 
             String node_id = config.get("name").asText();
-            String conversation_id = chatNode.get("conversation_id").asText();
+            String conversation_id = chatNode.get("conversationId").asText();
             String messageContent = chatNode.get("answer").asText();
 
             Message message = Message.builder().message_id(UUID.randomUUID().toString())
@@ -105,7 +105,8 @@ public class CreateStepStream {
 
         startStream(builder, streamConfiguration);
 
-        log.info("Stream started : " + config.get("name").asText());
+        log.info("Stream started : " + streamName + ", from : " + answerInputTopic + ", to : " + answerOutputTopic +
+                " OR to : " + questionTopic);
     }
 
     private boolean validate(JsonNode value) {

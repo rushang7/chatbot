@@ -14,4 +14,6 @@ public class ConversationState {
     private String active_node_id;
 
     private String user_id;
+
+    private boolean active;
 }

@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-public class TopicNameGenerator {
+public class TopicNameGetter {
 
     @Autowired
     private GraphReader graphReader;
