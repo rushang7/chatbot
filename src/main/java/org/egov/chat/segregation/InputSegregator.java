@@ -24,10 +24,6 @@ public class InputSegregator {
         JsonNode chatNode = consumerRecord.value();
         String conversationId = chatNode.get("conversationId").asText();
 
-//        ConversationState conversationState = conversationStateRepository.getActiveNodeIdForConversation(conversationId);
-//
-//        String activeNodeId = conversationState.getActive_node_id();
-
         String activeNodeId = conversationStateRepository.getActiveNodeIdForConversation(conversationId);
 
         String topic = topicNameGetter.getAnswerInputTopicNameForNode(activeNodeId);
