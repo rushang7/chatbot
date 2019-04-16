@@ -3,8 +3,10 @@ package org.egov.chat;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import org.egov.chat.graph.GraphReader;
-import org.egov.chat.graph.TopicNameGetter;
+import org.egov.chat.config.graph.GraphReader;
+import org.egov.chat.config.graph.TopicNameGetter;
+import org.egov.chat.streams.CreateBranchStream;
+import org.egov.chat.streams.CreateEndpointStream;
 import org.egov.chat.streams.CreateStepStream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -22,10 +24,10 @@ public class ChatBot {
 
     @Autowired
     private CreateStepStream createStepStream;
-
+    @Autowired
+    private CreateBranchStream createBranchStream;
     @Autowired
     private GraphReader graphReader;
-
     @Autowired
     private TopicNameGetter topicNameGetter;
 
@@ -45,25 +47,32 @@ public class ChatBot {
 
         while (vertexIterator.hasNext()) {
             String node = vertexIterator.next();
-            JsonNode config = mapper.readTree(ChatBot.class.getClassLoader().getResource("graph/pgr/create/" + node +
-                    ".yaml"));
+            JsonNode config = mapper.readTree(ChatBot.class.getClassLoader().getResource("graph/" + node + ".yaml"));
 
-            createStepStream.createEvaluateAnswerStreamForConfig(config,
-                    topicNameGetter.getAnswerInputTopicNameForNode(node),
-                    topicNameGetter.getAnswerOutputTopicNameForNode(node),
-                    topicNameGetter.getQuestionTopicNameForNode(node));
+            String nodeType = config.get("nodeType").asText();
 
-            createStepStream.createQuestionStreamForConfig(config, topicNameGetter.getQuestionTopicNameForNode(node),
-                    "send-message");
+            if(nodeType.equalsIgnoreCase("step")) {
+                createStepStream.createEvaluateAnswerStreamForConfig(config,
+                        topicNameGetter.getAnswerInputTopicNameForNode(node),
+                        topicNameGetter.getAnswerOutputTopicNameForNode(node),
+                        topicNameGetter.getQuestionTopicNameForNode(node));
+
+                createStepStream.createQuestionStreamForConfig(config, topicNameGetter.getQuestionTopicNameForNode(node),
+                        "send-message");
+
+            } else if(nodeType.equalsIgnoreCase("branch")) {
+                createBranchStream.createEvaluateAnswerStreamForConfig(config,
+                        topicNameGetter.getAnswerInputTopicNameForNode(node),
+                        topicNameGetter.getQuestionTopicNameForNode(node));
+
+                createBranchStream.createQuestionStreamForConfig(config,
+                        topicNameGetter.getQuestionTopicNameForNode(node),
+                        "send-message");
+            }
+
 
         }
 
-
-//        JsonNode config = mapper.readTree(ChatBot.class.getClassLoader().getResource("graph/pgr/create/pgr.create.address.yaml"));
-//
-//        createStepStream.createEvaluateAnswerStreamForConfig(config, "address-answer-input", "address-answer-output", "address-question");
-//
-//        createStepStream.createQuestionStreamForConfig(config, "address-question", "send-message");
     }
 
 }

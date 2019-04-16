@@ -1,4 +1,4 @@
-package org.egov.chat.graph;
+package org.egov.chat.config.graph;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

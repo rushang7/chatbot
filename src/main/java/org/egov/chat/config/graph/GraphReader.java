@@ -1,4 +1,4 @@
-package org.egov.chat.graph;
+package org.egov.chat.config.graph;
 
 import lombok.extern.slf4j.Slf4j;
 import org.jgrapht.Graph;

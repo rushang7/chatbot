@@ -2,7 +2,7 @@ name : pgr.create.photo
 nodeType : step
 
 optional : true
-validationRequired : true
+validationRequired : false
 
 type : photo
 

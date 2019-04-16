@@ -2,7 +2,7 @@ package org.egov.chat.segregation;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.egov.chat.graph.TopicNameGetter;
+import org.egov.chat.config.graph.TopicNameGetter;
 import org.egov.chat.repository.ConversationStateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;

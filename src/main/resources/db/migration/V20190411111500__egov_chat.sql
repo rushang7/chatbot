@@ -1,6 +1,6 @@
-DROP TABLE IF EXISTS eg_chat_user;
-DROP TABLE IF EXISTS eg_chat_conversation_state;
 DROP TABLE IF EXISTS eg_chat_message;
+DROP TABLE IF EXISTS eg_chat_conversation_state;
+DROP TABLE IF EXISTS eg_chat_user;
 
 CREATE TABLE eg_chat_user(
     id SERIAL,
@@ -29,5 +29,5 @@ CREATE TABLE eg_chat_message(
     message_content character varying(1000),
     PRIMARY KEY (id),
     CONSTRAINT fk_eg_chat_message_conversation FOREIGN KEY (conversation_id) REFERENCES eg_chat_conversation_state
-    (conversation_id)
+    (conversation_id) ON DELETE CASCADE
 );

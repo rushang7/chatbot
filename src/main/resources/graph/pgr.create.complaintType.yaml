@@ -2,7 +2,8 @@ name : pgr.create.complaintType
 description : "Complaint Type"
 nodeType : step
 optional : false
-validationRequired : true
+validationRequired: true
+validatorType: FixedSetValues
 
 message : "What is the type of complaint?"
 
@@ -16,4 +17,4 @@ values :
     filter : $.*.serviceCode
 
 displayValuesAsOptions : true
-fuzzyMatch : 0.9
+fuzzyMatch : 90

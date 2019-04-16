@@ -3,6 +3,7 @@ description : "Locality"
 nodeType : step
 optional : false
 validationRequired : true
+validatorType : FixedSetValues
 
 message : "What is the locality?"
 
@@ -16,5 +17,5 @@ values :
   params :
     tenantId : $tenantId
 
-displayValuesAsOptions : false
-fuzzyMatch : 0.9
+displayValuesAsOptions : true
+fuzzyMatch : 90
