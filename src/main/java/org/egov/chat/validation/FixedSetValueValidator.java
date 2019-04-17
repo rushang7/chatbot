@@ -48,7 +48,7 @@ public class FixedSetValueValidator {
 
         Integer fuzzyMatchScore;
         for(String validValue : validValues) {
-            fuzzyMatchScore = FuzzySearch.ratio(answer, validValue);
+            fuzzyMatchScore = FuzzySearch.tokenSetRatio(answer, validValue);
             if(fuzzyMatchScore >= minimumMatchScore)
                 return true;
         }

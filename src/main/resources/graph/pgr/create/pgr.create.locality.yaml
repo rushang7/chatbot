@@ -12,10 +12,10 @@ output : pgr.create.locality.output
 question : pgr.create.locality.question
 
 values :
-  class : org.egov.chatbot.values.LocalityValues
+  class : org.egov.chat.xternal.LocalityValueFetcher
   method : getValues
   params :
-    tenantId : $tenantId
+    tenantId : ^tenantId
 
 displayValuesAsOptions : true
 fuzzyMatch : 90

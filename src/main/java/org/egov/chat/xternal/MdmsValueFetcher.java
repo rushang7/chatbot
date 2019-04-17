@@ -1,31 +1,57 @@
 package org.egov.chat.xternal;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import net.minidev.json.JSONArray;
 import org.egov.chat.valuefetch.ExternalValueFetcher;
+import org.egov.common.contract.request.RequestInfo;
+import org.egov.mdms.model.*;
+import org.egov.mdms.service.MdmsClientService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
+@Component
 public class MdmsValueFetcher implements ExternalValueFetcher {
 
+    @Autowired
+    private RestTemplate restTemplate;
 
-    private String mdmsHost;
-    private String mdmsSearchEndpoint;
-
-    public MdmsValueFetcher(String mdmsHost, String mdmsSearchEndpoint) {
-        this.mdmsHost = mdmsHost;
-        this.mdmsSearchEndpoint = mdmsSearchEndpoint;
-    }
+    private String mdmsURL = "https://egov-micro-dev.egovernments.org/egov-mdms-service/v1/_search";
 
     @Override
-    public List<String> getValues(String ... args) {
-        if(args.length != 4)
-            throw new IllegalArgumentException();
-        String tenantId = args[0];
-        String moduleName = args[1];
-        String masterDetailsName = args[2];
-        String filter = args[3];
+    public List<String> getValues(ObjectNode params) {
+        String tenantIdArg = params.get("tenantId").asText();
+        String moduleNameArg = params.get("moduleName").asText();
+        String masterDetailsNameArg = params.get("masterDetailsName").asText();
+        String filterArg = params.get("filter").asText();
 
+        MasterDetail masterDetail = MasterDetail.builder().name(masterDetailsNameArg).filter(filterArg).build();
+        ModuleDetail moduleDetail =
+                ModuleDetail.builder().moduleName(moduleNameArg).masterDetails(Collections.singletonList(masterDetail)).build();
+        MdmsCriteria mdmsCriteria =
+                MdmsCriteria.builder().tenantId(tenantIdArg).moduleDetails(Collections.singletonList(moduleDetail)).build();
+        MdmsCriteriaReq mdmsCriteriaReq = MdmsCriteriaReq.builder().mdmsCriteria(mdmsCriteria).requestInfo(RequestInfo.builder().build()) .build();
 
+//        MdmsClientService mdmsClientService = new MdmsClientService();
+//        MdmsResponse mdmsResponse = mdmsClientService.getMaster(mdmsCriteriaReq);
 
-        return null;
+        MdmsResponse mdmsResponse = restTemplate.postForObject(mdmsURL, mdmsCriteriaReq, MdmsResponse.class);
+
+        Map<String, Map<String, JSONArray>> mdmsRes = mdmsResponse.getMdmsRes();
+
+        JSONArray mdmsResValues = mdmsRes.get(moduleNameArg).get(masterDetailsNameArg);
+
+        List<String> values = new ArrayList<>();
+
+        for(Object mdmsResValue : mdmsResValues) {
+            values.add((String) mdmsResValue);
+        }
+
+        return values;
     }
 }

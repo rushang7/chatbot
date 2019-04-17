@@ -8,12 +8,12 @@ validatorType: FixedSetValues
 message : "What is the type of complaint?"
 
 values :
-  class : org.egov.chatbot.values.Mdms
+  class : org.egov.chat.xternal.MdmsValueFetcher
   method : getValues
   params :
-    tenantId : $tenantId
-    moduleName : "RAINMAKER-PGR"
-    masterDetailsName : "ServiceDefs"
+    tenantId : ^tenantId
+    moduleName : RAINMAKER-PGR
+    masterDetailsName : ServiceDefs
     filter : $.*.serviceCode
 
 displayValuesAsOptions : true

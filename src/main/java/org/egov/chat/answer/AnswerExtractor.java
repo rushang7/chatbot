@@ -35,7 +35,7 @@ public class AnswerExtractor {
             Integer highestFuzzyScoreMatch = 0;
             answerIndex = 0;
             for(int i = 0; i < validValues.size(); i++) {
-                Integer score = FuzzySearch.ratio(validValues.get(i), answer);
+                Integer score = FuzzySearch.tokenSetRatio(validValues.get(i), answer);
                 if(score > highestFuzzyScoreMatch) {
                     highestFuzzyScoreMatch = score;
                     answerIndex = i;
