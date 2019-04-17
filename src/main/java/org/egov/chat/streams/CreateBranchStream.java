@@ -56,7 +56,11 @@ public class CreateBranchStream extends CreateStream {
         for(int i = 1; i < kStreamBranches.length; i++) {
             String targetNode = config.get(branchNames.get(i - 1)).asText();
             String targetTopicName = topicNameGetter.getQuestionTopicNameForNode(targetNode);
-            kStreamBranches[i].mapValues(value -> value).to(targetTopicName, Produced.with(Serdes.String(), jsonSerde));
+            kStreamBranches[i].mapValues(chatNode -> {
+                chatNode = answerExtractor.extractAnswer(config, chatNode);
+                answerStore.saveAnswer(config, chatNode);
+                return chatNode;
+            }).to(targetTopicName, Produced.with(Serdes.String(), jsonSerde));
         }
 
         startStream(builder, streamConfiguration);

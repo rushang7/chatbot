@@ -31,6 +31,9 @@ public class ChatBot {
     @Autowired
     private TopicNameGetter topicNameGetter;
 
+    String rootFolder = "graph/";
+    String fileExtension = ".yaml";
+
     public static void main(String args[]) {
 
         SpringApplication.run(ChatBot.class, args);
@@ -39,15 +42,15 @@ public class ChatBot {
 
     @PostConstruct
     public void run() throws IOException {
-        ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-
         Set<String> vertices = graphReader.getAllVertices();
-
         Iterator<String> vertexIterator = vertices.iterator();
 
         while (vertexIterator.hasNext()) {
             String node = vertexIterator.next();
-            JsonNode config = mapper.readTree(ChatBot.class.getClassLoader().getResource("graph/" + node + ".yaml"));
+
+            String pathToFile = getPathToConfigFileForNode(node);
+
+            JsonNode config = getConfigForFile(pathToFile);
 
             String nodeType = config.get("nodeType").asText();
 
@@ -69,10 +72,25 @@ public class ChatBot {
                         topicNameGetter.getQuestionTopicNameForNode(node),
                         "send-message");
             }
-
-
         }
+    }
 
+    private String getPathToConfigFileForNode(String node) {
+        String path = "";
+        path += rootFolder;
+        String subFolders[] = node.split("\\.");
+        for(int i = 0; i < subFolders.length - 1; i++) {
+            path += subFolders[i] + "/";
+        }
+        path += node;
+        path += fileExtension;
+        return path;
+    }
+
+    private JsonNode getConfigForFile(String pathToFile) throws IOException {
+        ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+        JsonNode config = mapper.readTree(ChatBot.class.getClassLoader().getResource(pathToFile));
+        return config;
     }
 
 }
