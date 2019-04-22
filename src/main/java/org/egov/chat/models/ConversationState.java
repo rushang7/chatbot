@@ -9,11 +9,11 @@ import lombok.*;
 @AllArgsConstructor
 public class ConversationState {
 
-    private String conversation_id;
+    private String conversationId;
 
-    private String active_node_id;
+    private String activeNodeId;
 
-    private String user_id;
+    private String userId;
 
     private boolean active;
 }

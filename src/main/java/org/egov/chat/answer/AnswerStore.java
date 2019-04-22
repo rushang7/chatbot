@@ -19,8 +19,8 @@ public class AnswerStore {
         String conversation_id = chatNode.get("conversationId").asText();
         String messageContent = chatNode.get("answer").asText();
 
-        Message message = Message.builder().message_id(UUID.randomUUID().toString())
-                .conversation_id(conversation_id).node_id(node_id).message_content(messageContent).build();
+        Message message = Message.builder().messageId(UUID.randomUUID().toString())
+                .conversationId(conversation_id).nodeId(node_id).messageContent(messageContent).build();
         messageRepository.insertMessage(message);
 
     }

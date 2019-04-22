@@ -9,12 +9,14 @@ import lombok.*;
 @AllArgsConstructor
 public class Message {
 
-    private String message_id;
+    private String messageId;
 
-    private String conversation_id;
+    private String conversationId;
 
-    private String node_id;
+    private String nodeId;
 
-    private String message_content;
+    private String messageContent;
+
+    private String contentType;
 
 }
