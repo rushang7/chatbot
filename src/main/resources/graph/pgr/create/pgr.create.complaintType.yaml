@@ -8,8 +8,7 @@ validatorType: FixedSetValues
 message : "What is the type of complaint?"
 
 values :
-  class : org.egov.chat.xternal.MdmsValueFetcher
-  method : getValues
+  class : org.egov.chat.xternal.valuefetch.MdmsValueFetcher
   params :
     tenantId : ^tenantId
     moduleName : RAINMAKER-PGR

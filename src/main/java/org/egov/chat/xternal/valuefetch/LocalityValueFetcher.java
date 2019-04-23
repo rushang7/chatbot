@@ -1,4 +1,4 @@
-package org.egov.chat.xternal;
+package org.egov.chat.xternal.valuefetch;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.JsonNode;

@@ -27,6 +27,8 @@ public class ChatBot {
     @Autowired
     private CreateBranchStream createBranchStream;
     @Autowired
+    private CreateEndpointStream createEndpointStream;
+    @Autowired
     private GraphReader graphReader;
     @Autowired
     private TopicNameGetter topicNameGetter;
@@ -60,7 +62,8 @@ public class ChatBot {
                         topicNameGetter.getAnswerOutputTopicNameForNode(node),
                         topicNameGetter.getQuestionTopicNameForNode(node));
 
-                createStepStream.createQuestionStreamForConfig(config, topicNameGetter.getQuestionTopicNameForNode(node),
+                createStepStream.createQuestionStreamForConfig(config,
+                        topicNameGetter.getQuestionTopicNameForNode(node),
                         "send-message");
 
             } else if(nodeType.equalsIgnoreCase("branch")) {
@@ -71,6 +74,11 @@ public class ChatBot {
                 createBranchStream.createQuestionStreamForConfig(config,
                         topicNameGetter.getQuestionTopicNameForNode(node),
                         "send-message");
+            } else if(nodeType.equalsIgnoreCase("endpoint")) {
+
+                createEndpointStream.createEndpointStream(config, topicNameGetter.getQuestionTopicNameForNode(node),
+                        "send-message");
+
             }
         }
     }

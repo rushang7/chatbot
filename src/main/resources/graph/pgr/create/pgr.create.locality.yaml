@@ -12,8 +12,7 @@ output : pgr.create.locality.output
 question : pgr.create.locality.question
 
 values :
-  class : org.egov.chat.xternal.LocalityValueFetcher
-  method : getValues
+  class : org.egov.chat.xternal.valuefetch.LocalityValueFetcher
   params :
     tenantId : ^tenantId
 

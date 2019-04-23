@@ -1,4 +1,10 @@
 name : pgr.create.endpoint
 nodeType : endpoint
 
+class : org.egov.chat.xternal.restendpoint.PGRComplaintCreate
+
+nodes : [ pgr.create.complaintType, pgr.create.locality, pgr.create.complaintDetails, pgr.create.address ]
+params :
+  tenantId : ^tenantId
+  mobileNumber : ^mobileNumber
 
