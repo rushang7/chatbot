@@ -1,4 +1,4 @@
-package org.egov.chat.valuefetch;
+package org.egov.chat.service.valuefetch;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 

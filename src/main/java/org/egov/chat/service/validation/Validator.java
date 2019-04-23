@@ -1,4 +1,4 @@
-package org.egov.chat.validation;
+package org.egov.chat.service.validation;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;

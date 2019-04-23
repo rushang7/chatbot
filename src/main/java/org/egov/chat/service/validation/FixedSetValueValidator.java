@@ -1,8 +1,8 @@
-package org.egov.chat.validation;
+package org.egov.chat.service.validation;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import me.xdrop.fuzzywuzzy.FuzzySearch;
-import org.egov.chat.valuefetch.ValueFetcher;
+import org.egov.chat.service.valuefetch.ValueFetcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

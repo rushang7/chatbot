@@ -1,4 +1,4 @@
-package org.egov.chat.streams;
+package org.egov.chat.service.streams;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -10,9 +10,8 @@ import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
-import org.egov.chat.repository.ConversationStateRepository;
 import org.egov.chat.repository.MessageRepository;
-import org.egov.chat.restendpoint.RestAPI;
+import org.egov.chat.service.restendpoint.RestAPI;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

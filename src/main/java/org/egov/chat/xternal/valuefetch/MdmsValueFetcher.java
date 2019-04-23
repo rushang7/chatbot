@@ -2,10 +2,9 @@ package org.egov.chat.xternal.valuefetch;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import net.minidev.json.JSONArray;
-import org.egov.chat.valuefetch.ExternalValueFetcher;
+import org.egov.chat.service.valuefetch.ExternalValueFetcher;
 import org.egov.common.contract.request.RequestInfo;
 import org.egov.mdms.model.*;
-import org.egov.mdms.service.MdmsClientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;

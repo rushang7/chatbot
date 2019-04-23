@@ -1,4 +1,4 @@
-package org.egov.chat.restendpoint;
+package org.egov.chat.service.restendpoint;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 

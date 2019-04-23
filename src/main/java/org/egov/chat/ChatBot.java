@@ -5,9 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.egov.chat.config.graph.GraphReader;
 import org.egov.chat.config.graph.TopicNameGetter;
-import org.egov.chat.streams.CreateBranchStream;
-import org.egov.chat.streams.CreateEndpointStream;
-import org.egov.chat.streams.CreateStepStream;
+import org.egov.chat.service.streams.CreateBranchStream;
+import org.egov.chat.service.streams.CreateEndpointStream;
+import org.egov.chat.service.streams.CreateStepStream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -44,6 +44,11 @@ public class ChatBot {
 
     @PostConstruct
     public void run() throws IOException {
+
+        createGraphStreams();
+    }
+
+    private void createGraphStreams() throws IOException {
         Set<String> vertices = graphReader.getAllVertices();
         Iterator<String> vertexIterator = vertices.iterator();
 
@@ -78,7 +83,6 @@ public class ChatBot {
 
                 createEndpointStream.createEndpointStream(config, topicNameGetter.getQuestionTopicNameForNode(node),
                         "send-message");
-
             }
         }
     }

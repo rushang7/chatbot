@@ -1,4 +1,4 @@
-package org.egov.chat.streams;
+package org.egov.chat.service.streams;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
@@ -10,7 +10,7 @@ import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
 import org.egov.chat.service.AnswerExtractor;
 import org.egov.chat.service.AnswerStore;
-import org.egov.chat.validation.Validator;
+import org.egov.chat.service.validation.Validator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
