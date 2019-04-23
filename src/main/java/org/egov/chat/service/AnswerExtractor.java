@@ -1,15 +1,15 @@
-package org.egov.chat.answer;
+package org.egov.chat.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import me.xdrop.fuzzywuzzy.FuzzySearch;
 import org.egov.chat.valuefetch.ValueFetcher;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Component
+@Service
 public class AnswerExtractor {
 
     @Autowired

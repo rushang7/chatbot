@@ -10,10 +10,9 @@ import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Predicate;
 import org.apache.kafka.streams.kstream.Produced;
-import org.egov.chat.answer.AnswerExtractor;
-import org.egov.chat.answer.AnswerStore;
+import org.egov.chat.service.AnswerExtractor;
+import org.egov.chat.service.AnswerStore;
 import org.egov.chat.config.graph.TopicNameGetter;
-import org.egov.chat.models.Message;
 import org.egov.chat.validation.Validator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -21,7 +20,6 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import java.util.UUID;
 
 @Component
 @Slf4j

@@ -1,8 +1,6 @@
 package org.egov.chat.streams;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
@@ -16,12 +14,9 @@ import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
-import org.egov.chat.answer.AnswerExtractor;
-import org.egov.chat.answer.AnswerStore;
-import org.egov.chat.question.QuestionGenerator;
+import org.egov.chat.service.QuestionGenerator;
 import org.egov.chat.repository.ConversationStateRepository;
 import org.egov.chat.repository.MessageRepository;
-import org.egov.chat.validation.Validator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

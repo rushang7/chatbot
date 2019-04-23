@@ -19,6 +19,9 @@ public class ConversationStateRepository {
     private static final String updateActiveNodeIdQuery = "UPDATE eg_chat_conversation_state SET active_node_id=? " +
             "WHERE conversation_id=?";
 
+    private static final String updateActiveStateForConversationQuery = "UPDATE eg_chat_conversation_state SET " +
+            "active=FALSE WHERE conversation_id=?";
+
     private static final String selectActiveNodeIdForConversationStateQuery = "SELECT (active_node_id " +
             ") FROM eg_chat_conversation_state WHERE conversation_id=?";
 
@@ -27,6 +30,10 @@ public class ConversationStateRepository {
 
     public int updateActiveNodeForConversation(String conversationId, String activeNodeId) {
         return jdbcTemplate.update(updateActiveNodeIdQuery, activeNodeId, conversationId);
+    }
+
+    public int markConversationInactive(String conversationId) {
+        return jdbcTemplate.update(updateActiveStateForConversationQuery, conversationId);
     }
 
     public String getActiveNodeIdForConversation(String conversationId) {

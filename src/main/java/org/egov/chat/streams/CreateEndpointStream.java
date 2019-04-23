@@ -10,6 +10,8 @@ import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
+import org.egov.chat.repository.ConversationStateRepository;
+import org.egov.chat.repository.MessageRepository;
 import org.egov.chat.restendpoint.RestAPI;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -22,6 +24,9 @@ public class CreateEndpointStream extends CreateStream {
 
     @Autowired
     private RestAPI restAPI;
+
+    @Autowired
+    private MessageRepository messageRepository;
 
     public void createEndpointStream(JsonNode config, String inputTopic, String sendMessageTopic) {
 
@@ -38,6 +43,9 @@ public class CreateEndpointStream extends CreateStream {
             String responseMessage = restAPI.makeRestEndpointCall(config, chatNode);
 
             chatNode = ((ObjectNode) chatNode).set("question", TextNode.valueOf(responseMessage));
+
+            String conversationId = chatNode.get("conversationId").asText();
+            conversationStateRepository.markConversationInactive(conversationId);
 
             return chatNode;
         }).to(sendMessageTopic, Produced.with(Serdes.String(), jsonSerde));

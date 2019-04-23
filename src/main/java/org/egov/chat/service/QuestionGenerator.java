@@ -1,4 +1,4 @@
-package org.egov.chat.question;
+package org.egov.chat.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -6,11 +6,11 @@ import com.fasterxml.jackson.databind.node.TextNode;
 import lombok.extern.slf4j.Slf4j;
 import org.egov.chat.valuefetch.ValueFetcher;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Component
+@Service
 @Slf4j
 public class QuestionGenerator {
 

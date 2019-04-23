@@ -1,4 +1,4 @@
-name : pgr.create.endpoint
+name : pgr.create.end
 nodeType : endpoint
 
 class : org.egov.chat.xternal.restendpoint.PGRComplaintCreate
