@@ -13,14 +13,6 @@ public class ChatController {
 
     @Autowired
     private InputSegregator inputSegregator;
-    @Autowired
-    private InitiateConversation initiateConversation;
-
-
-    @KafkaListener(groupId = "initiate-conversation", topics = "input-messages")
-    public void initiateConversation(ConsumerRecord<String, JsonNode> consumerRecord) {
-        initiateConversation.createOrContinueConversation(consumerRecord);
-    }
 
     @KafkaListener(groupId = "input-segregator", topics = "input-answer")
     public void segregateInput(ConsumerRecord<String, JsonNode> consumerRecord) {
