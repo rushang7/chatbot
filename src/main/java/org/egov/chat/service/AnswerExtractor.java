@@ -25,11 +25,14 @@ public class AnswerExtractor {
     }
 
     private JsonNode extractAnswerFromFixedSet(JsonNode config, JsonNode chatNode) {
+        boolean displayValuesAsOptions = config.get("displayValuesAsOptions") != null ?
+                config.get("displayValuesAsOptions").asBoolean() : false;
+
         String answer = chatNode.get("answer").asText();
         List<String> validValues = valueFetcher.getAllValidValues(config, chatNode);
 
         Integer answerIndex;
-        if(checkIfAnswerIsIndex(answer)) {
+        if(displayValuesAsOptions && checkIfAnswerIsIndex(answer)) {
             answerIndex = Integer.parseInt(answer) - 1;
         } else {
             Integer highestFuzzyScoreMatch = 0;

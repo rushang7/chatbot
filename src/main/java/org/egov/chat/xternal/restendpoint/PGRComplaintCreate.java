@@ -45,7 +45,6 @@ public class PGRComplaintCreate implements RestEndpoint {
         String locality = params.get("pgr.create.locality").asText();
         String complaintDetails = params.get("pgr.create.complaintDetails").asText();
         String address = params.get("pgr.create.address").asText();
-        String landmark = params.get("pgr.create.landmark").asText();
 
 
         DocumentContext request = JsonPath.parse(pgrCreateRequestBody);

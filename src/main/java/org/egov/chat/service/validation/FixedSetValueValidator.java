@@ -15,17 +15,19 @@ public class FixedSetValueValidator {
     private ValueFetcher valueFetcher;
 
     public boolean isValid(JsonNode config, JsonNode chatNode) {
+        boolean displayValuesAsOptions = config.get("displayValuesAsOptions") != null ?
+                config.get("displayValuesAsOptions").asBoolean() : false;
         String answer = chatNode.get("answer").asText();
         List<String> validValues = valueFetcher.getAllValidValues(config, chatNode);
 
-        if(checkIfAnswerIsIndex(answer)) {
+        if(displayValuesAsOptions && checkIfAnswerIsIndex(answer)) {
             return checkIfIndexIsValid(answer, validValues);
         } else {
             return fuzzyMatchAnswerWithValidValues(answer, validValues, config);
         }
     }
 
-    public boolean checkIfAnswerIsIndex(String answer) {
+    boolean checkIfAnswerIsIndex(String answer) {
         try {
             Integer.parseInt(answer);
             return true;
@@ -34,7 +36,7 @@ public class FixedSetValueValidator {
         }
     }
 
-    public boolean checkIfIndexIsValid(String answer, List<String> validValues) {
+    boolean checkIfIndexIsValid(String answer, List<String> validValues) {
         Integer answerInteger = Integer.parseInt(answer);
         if(answerInteger > 0 && answerInteger <= validValues.size())
             return true;
@@ -42,14 +44,14 @@ public class FixedSetValueValidator {
             return false;
     }
 
-    private boolean fuzzyMatchAnswerWithValidValues(String answer, List<String> validValues, JsonNode config) {
+    boolean fuzzyMatchAnswerWithValidValues(String answer, List<String> validValues, JsonNode config) {
 
-        Integer minimumMatchScore = config.get("fuzzyMatch").asInt();
+        Integer matchScoreThreshold = config.get("fuzzyMatch").asInt();
 
         Integer fuzzyMatchScore;
         for(String validValue : validValues) {
             fuzzyMatchScore = FuzzySearch.tokenSetRatio(answer, validValue);
-            if(fuzzyMatchScore >= minimumMatchScore)
+            if(fuzzyMatchScore >= matchScoreThreshold)
                 return true;
         }
         return false;
