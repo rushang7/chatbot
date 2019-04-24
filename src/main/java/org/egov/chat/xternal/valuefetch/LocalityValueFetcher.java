@@ -23,7 +23,7 @@ public class LocalityValueFetcher implements ExternalValueFetcher {
     @Autowired
     private RestTemplate restTemplate;
 
-    private String requestBodyString = "{\"RequestInfo\":{\"authToken\":\"954e5479-668b-4bf7-b149-e5c2bc7a72d1\"}}";
+    private String requestBodyString = "{\"RequestInfo\":{\"authToken\":\"b9c0115f-f6f8-4710-bd3b-f0cd48750591\"}}";
     private String locationServiceUrl = "https://egov-micro-dev.egovernments" +
             ".org/egov-location/location/v11/boundarys/_search";
     private Map<String, String> defaultQueryParams = new HashMap<String, String>() {{

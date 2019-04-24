@@ -64,9 +64,7 @@ public class ResetCheck {
                 (key, value) -> true
         );
 
-        branches[0].mapValues(chatNode -> {
-            return chatNode;
-        }).to(outputTopic, Produced.with(Serdes.String(), jsonSerde));
+        branches[0].mapValues(chatNode -> chatNode).to(outputTopic, Produced.with(Serdes.String(), jsonSerde));
 
         branches[1].mapValues(chatNode -> {
             String conversationId = chatNode.get("conversationId").asText();

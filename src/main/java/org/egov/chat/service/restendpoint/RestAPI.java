@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import org.egov.chat.models.Message;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class RestAPI {
@@ -41,12 +43,18 @@ public class RestAPI {
         ObjectMapper mapper = new ObjectMapper(new JsonFactory());
         ObjectNode params = mapper.createObjectNode();
 
+        List<Message> messageList = messageRepository.getMessagesOfConversation(conversationId);
+
         ArrayNode paramConfig = (ArrayNode) config.get("nodes");
 
         for(JsonNode param : paramConfig) {
             String nodeId = param.asText();
-            Message message = messageRepository.getMessageForConversationAndNode(conversationId, nodeId);
-            params.set(nodeId, TextNode.valueOf(message.getMessageContent()));
+            Optional<Message> message =
+                    messageList.stream().filter(message1 -> message1.getNodeId().equalsIgnoreCase(nodeId)).findFirst();
+            if(message.isPresent())
+                params.set(nodeId, TextNode.valueOf(message.get().getMessageContent()));
+            else
+                params.set(nodeId, NullNode.getInstance());
         }
         ObjectNode paramConfigurations = (ObjectNode) config.get("params");
         Iterator<String> paramKeys = paramConfigurations.fieldNames();

@@ -28,14 +28,14 @@ public class PGRComplaintCreate implements RestEndpoint {
     private RestTemplate restTemplate;
     private ObjectMapper mapper = new ObjectMapper(new JsonFactory());
 
-    private String authToken = "954e5479-668b-4bf7-b149-e5c2bc7a72d1";
+    private String authToken = "b9c0115f-f6f8-4710-bd3b-f0cd48750591";
     private String host = "https://egov-micro-dev.egovernments.org";
 
     private String pgrCreateComplaintUrl = host + "/rainmaker-pgr/v1/requests/_create";
 
     private String locationServiceUrl = host + "/egov-location/location/v11/boundarys/_search";
 
-    String pgrCreateRequestBody = "{\"RequestInfo\":{\"authToken\":\"954e5479-668b-4bf7-b149-e5c2bc7a72d1\"},\"actionInfo\":[{\"media\":[]}],\"services\":[{\"addressDetail\":{\"city\":\"pb.amritsar\",\"mohalla\":\"SUN04\"},\"city\":\"pb.amritsar\",\"mohalla\":\"SUN04\",\"phone\":\"9428010077\",\"serviceCode\":\"illegalDischargeOfSewage\",\"source\":\"web\",\"tenantId\":\"pb.amritsar\"}]}";
+    String pgrCreateRequestBody = "{\"RequestInfo\":{\"authToken\":\"b9c0115f-f6f8-4710-bd3b-f0cd48750591\"},\"actionInfo\":[{\"media\":[]}],\"services\":[{\"addressDetail\":{\"city\":\"pb.amritsar\",\"mohalla\":\"SUN04\"},\"city\":\"pb.amritsar\",\"mohalla\":\"SUN04\",\"phone\":\"9428010077\",\"serviceCode\":\"illegalDischargeOfSewage\",\"source\":\"web\",\"tenantId\":\"pb.amritsar\"}]}";
 
     @Override
     public String messageForRestCall(ObjectNode params) {
@@ -45,6 +45,7 @@ public class PGRComplaintCreate implements RestEndpoint {
         String locality = params.get("pgr.create.locality").asText();
         String complaintDetails = params.get("pgr.create.complaintDetails").asText();
         String address = params.get("pgr.create.address").asText();
+        String landmark = params.get("pgr.create.landmark").asText();
 
 
         DocumentContext request = JsonPath.parse(pgrCreateRequestBody);
@@ -91,7 +92,7 @@ public class PGRComplaintCreate implements RestEndpoint {
 
     private String getMohallaCode(String tenantId, String locality) {
 
-        String requestBodyString = "{\"RequestInfo\":{\"authToken\":\"954e5479-668b-4bf7-b149-e5c2bc7a72d1\"}}";
+        String requestBodyString = "{\"RequestInfo\":{\"authToken\":\"b9c0115f-f6f8-4710-bd3b-f0cd48750591\"}}";
 
         Map<String, String> defaultQueryParams = new HashMap<String, String>() {{
             put("hierarchyTypeCode","ADMIN");
