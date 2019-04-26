@@ -2,8 +2,7 @@ name : pgr.create.photo
 nodeType : step
 
 optional : true
-validationRequired : false
 
-type : photo
+dataType : photo
 
 message : "Please upload the photo?"

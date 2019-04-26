@@ -14,12 +14,14 @@ import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
+import org.egov.chat.config.ApplicationProperties;
 import org.egov.chat.service.QuestionGenerator;
 import org.egov.chat.repository.ConversationStateRepository;
 import org.egov.chat.repository.MessageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.Properties;
 
 @Component
@@ -30,17 +32,18 @@ public class CreateStream {
     protected Serde<JsonNode> jsonSerde;
 
     @Autowired
-    protected ConversationStateRepository conversationStateRepository;
+    private ApplicationProperties applicationProperties;
+
     @Autowired
-    protected MessageRepository messageRepository;
+    protected ConversationStateRepository conversationStateRepository;
 
     @Autowired
     protected QuestionGenerator questionGenerator;
 
-    @Autowired
-    public CreateStream() {
+    @PostConstruct
+    public void init() {
         this.defaultStreamConfiguration = new Properties();
-        defaultStreamConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        defaultStreamConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, applicationProperties.getKafkaHost());
 
         Serializer<JsonNode> jsonSerializer = new JsonSerializer();
         Deserializer<JsonNode> jsonDeserializer = new JsonDeserializer();

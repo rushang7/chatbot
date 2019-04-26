@@ -2,6 +2,9 @@ name : pgr.create.complaintType
 description : "Complaint Type"
 nodeType : step
 optional : false
+
+dataType : text
+
 validationRequired: true
 validatorType: FixedSetValues
 

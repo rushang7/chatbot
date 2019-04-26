@@ -3,8 +3,7 @@ description : "Address of the complaint"
 nodeType : step
 
 optional : true
-validationRequired : false
 
 message : "Could you please enter the address?"
 
-type : text
+dataType : text

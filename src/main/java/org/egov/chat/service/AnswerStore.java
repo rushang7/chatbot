@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.egov.chat.models.Message;
 import org.egov.chat.repository.MessageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;

@@ -3,7 +3,8 @@ description : "Address of the complaint"
 nodeType : step
 
 optional : true
-validationRequired : false
+
+dataType : text
 
 message : "Could you please enter the landmark?"
 

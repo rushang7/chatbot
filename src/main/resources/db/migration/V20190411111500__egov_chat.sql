@@ -6,6 +6,7 @@ CREATE TABLE eg_chat_user(
     id SERIAL,
     user_id character varying(100),
     mobile_number character varying(50),
+    auth_token character varying(100),
     PRIMARY KEY (id),
     UNIQUE (user_id)
 );
@@ -17,7 +18,6 @@ CREATE TABLE eg_chat_conversation_state(
     user_id character varying(100),
     active BOOLEAN,
     PRIMARY KEY (id),
-    CONSTRAINT fk_eg_chat_user_conversation FOREIGN KEY (user_id) REFERENCES eg_chat_user (user_id),
     UNIQUE (conversation_id)
 );
 
@@ -27,6 +27,7 @@ CREATE TABLE eg_chat_message(
     conversation_id character varying(100),
     node_id character varying(100),
     message_content character varying(1000),
+    content_type character varying(100),
     PRIMARY KEY (id),
     CONSTRAINT fk_eg_chat_message_conversation FOREIGN KEY (conversation_id) REFERENCES eg_chat_conversation_state
     (conversation_id) ON DELETE CASCADE

@@ -15,11 +15,13 @@ import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
+import org.egov.chat.config.ApplicationProperties;
 import org.egov.chat.repository.ConversationStateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
@@ -32,6 +34,8 @@ public class ResetCheck {
     private List<String> resetKeywords = Arrays.asList("reset", "cancel");
     private int fuzzymatchScoreThreshold = 90;
 
+    @Autowired
+    private ApplicationProperties applicationProperties;
 
     @Autowired
     private ConversationStateRepository conversationStateRepository;
@@ -41,16 +45,15 @@ public class ResetCheck {
     private Properties defaultStreamConfiguration;
     private Serde<JsonNode> jsonSerde;
 
-    @Autowired
-    public ResetCheck() {
+    @PostConstruct
+    public void init() {
         this.defaultStreamConfiguration = new Properties();
-        defaultStreamConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        defaultStreamConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, applicationProperties.getKafkaHost());
 
         Serializer<JsonNode> jsonSerializer = new JsonSerializer();
         Deserializer<JsonNode> jsonDeserializer = new JsonDeserializer();
         jsonSerde = Serdes.serdeFrom(jsonSerializer, jsonDeserializer);
     }
-
 
     public void startStream(String inputTopic, String outputTopic, String resetTopic) {
 

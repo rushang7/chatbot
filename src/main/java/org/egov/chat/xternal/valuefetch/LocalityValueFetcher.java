@@ -5,12 +5,16 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.jayway.jsonpath.DocumentContext;
+import com.jayway.jsonpath.JsonPath;
+import org.egov.chat.config.ApplicationProperties;
 import org.egov.chat.service.valuefetch.ExternalValueFetcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,14 +26,23 @@ public class LocalityValueFetcher implements ExternalValueFetcher {
 
     @Autowired
     private RestTemplate restTemplate;
+    @Autowired
+    private ApplicationProperties applicationProperties;
 
-    private String requestBodyString = "{\"RequestInfo\":{\"authToken\":\"b9c0115f-f6f8-4710-bd3b-f0cd48750591\"}}";
-    private String locationServiceUrl = "https://egov-micro-dev.egovernments" +
-            ".org/egov-location/location/v11/boundarys/_search";
+    private String locationServiceUrl;
+
+    private String authToken = "b9c0115f-f6f8-4710-bd3b-f0cd48750591";
+
     private Map<String, String> defaultQueryParams = new HashMap<String, String>() {{
         put("hierarchyTypeCode","ADMIN");
         put("boundaryType", "Locality");
     }};
+    private String requestBodyString = "{\"RequestInfo\":{\"authToken\":\"b9c0115f-f6f8-4710-bd3b-f0cd48750591\"}}";
+
+    @PostConstruct
+    public void init() {
+        locationServiceUrl = applicationProperties.getEgovHost() + "/egov-location/location/v11/boundarys/_search";
+    }
 
     @Override
     public List<String> getValues(ObjectNode params) {
@@ -41,10 +54,13 @@ public class LocalityValueFetcher implements ExternalValueFetcher {
 
         String url = uriComponents.buildAndExpand().toUriString();
 
+        DocumentContext request = JsonPath.parse(requestBodyString);
+        request.set("$.RequestInfo.authToken", authToken);
+
         ObjectMapper mapper = new ObjectMapper(new JsonFactory());
         ObjectNode requestBody = null;
         try {
-             requestBody = (ObjectNode) mapper.readTree(requestBodyString);
+             requestBody = (ObjectNode) mapper.readTree(request.jsonString());
         } catch (IOException e) {
             e.printStackTrace();
         }

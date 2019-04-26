@@ -15,7 +15,7 @@ public class MessageRepository {
     private JdbcTemplate jdbcTemplate;
 
     private static final String insertMessageQuery = "INSERT INTO eg_chat_message (message_id, conversation_id, " +
-            "node_id, message_content) VALUES (?, ?, ?, ?)";
+            "node_id, message_content, content_type) VALUES (?, ?, ?, ?, ?)";
 
     private static final String selectMessagesOfConversationQuery = "SELECT * FROM eg_chat_message WHERE " +
             "conversation_id=?";
@@ -25,7 +25,8 @@ public class MessageRepository {
                 message.getMessageId(),
                 message.getConversationId(),
                 message.getNodeId(),
-                message.getMessageContent());
+                message.getMessageContent(),
+                message.getContentType());
     }
 
     public List<Message> getMessagesOfConversation(String conversationId) {

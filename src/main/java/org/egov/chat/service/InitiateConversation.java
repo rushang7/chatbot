@@ -3,7 +3,6 @@ package org.egov.chat.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
@@ -16,12 +15,14 @@ import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
+import org.egov.chat.config.ApplicationProperties;
 import org.egov.chat.models.ConversationState;
 import org.egov.chat.repository.ConversationStateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -31,6 +32,9 @@ public class InitiateConversation {
     private String streamName = "initiate-conversation";
 
     @Autowired
+    private ApplicationProperties applicationProperties;
+
+    @Autowired
     private ConversationStateRepository conversationStateRepository;
     @Autowired
     private KafkaTemplate<String, JsonNode> kafkaTemplate;
@@ -38,11 +42,10 @@ public class InitiateConversation {
     private Properties defaultStreamConfiguration;
     private Serde<JsonNode> jsonSerde;
 
-
-    @Autowired
-    public InitiateConversation() {
+    @PostConstruct
+    public void init() {
         this.defaultStreamConfiguration = new Properties();
-        defaultStreamConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        defaultStreamConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, applicationProperties.getKafkaHost());
 
         Serializer<JsonNode> jsonSerializer = new JsonSerializer();
         Deserializer<JsonNode> jsonDeserializer = new JsonDeserializer();

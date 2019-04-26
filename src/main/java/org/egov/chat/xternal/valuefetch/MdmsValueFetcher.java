@@ -2,6 +2,7 @@ package org.egov.chat.xternal.valuefetch;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import net.minidev.json.JSONArray;
+import org.egov.chat.config.ApplicationProperties;
 import org.egov.chat.service.valuefetch.ExternalValueFetcher;
 import org.egov.common.contract.request.RequestInfo;
 import org.egov.mdms.model.*;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -19,8 +21,15 @@ public class MdmsValueFetcher implements ExternalValueFetcher {
 
     @Autowired
     private RestTemplate restTemplate;
+    @Autowired
+    private ApplicationProperties applicationProperties;
 
-    private String mdmsURL = "https://egov-micro-dev.egovernments.org/egov-mdms-service/v1/_search";
+    private String mdmsURL;
+
+    @PostConstruct
+    public void init() {
+        mdmsURL = applicationProperties.getEgovHost() + "/egov-mdms-service/v1/_search";
+    }
 
     @Override
     public List<String> getValues(ObjectNode params) {

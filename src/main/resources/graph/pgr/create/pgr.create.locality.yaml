@@ -2,6 +2,9 @@ name : pgr.create.locality
 description : "Locality"
 nodeType : step
 optional : false
+
+dataType : text
+
 validationRequired : true
 validatorType : FixedSetValues
 

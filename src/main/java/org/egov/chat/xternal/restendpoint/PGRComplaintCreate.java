@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
+import org.egov.chat.config.ApplicationProperties;
 import org.egov.chat.service.restendpoint.RestEndpoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -14,8 +15,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,19 +24,25 @@ import java.util.Map;
 @Component
 public class PGRComplaintCreate implements RestEndpoint {
 
-
     @Autowired
     private RestTemplate restTemplate;
     private ObjectMapper mapper = new ObjectMapper(new JsonFactory());
 
+    @Autowired
+    private ApplicationProperties applicationProperties;
+
     private String authToken = "b9c0115f-f6f8-4710-bd3b-f0cd48750591";
-    private String host = "https://egov-micro-dev.egovernments.org";
 
-    private String pgrCreateComplaintUrl = host + "/rainmaker-pgr/v1/requests/_create";
-
-    private String locationServiceUrl = host + "/egov-location/location/v11/boundarys/_search";
+    private String pgrCreateComplaintUrl;
+    private String locationServiceUrl;
 
     String pgrCreateRequestBody = "{\"RequestInfo\":{\"authToken\":\"b9c0115f-f6f8-4710-bd3b-f0cd48750591\"},\"actionInfo\":[{\"media\":[]}],\"services\":[{\"addressDetail\":{\"city\":\"pb.amritsar\",\"mohalla\":\"SUN04\"},\"city\":\"pb.amritsar\",\"mohalla\":\"SUN04\",\"phone\":\"9428010077\",\"serviceCode\":\"illegalDischargeOfSewage\",\"source\":\"web\",\"tenantId\":\"pb.amritsar\"}]}";
+
+    @PostConstruct
+    public void init() {
+        pgrCreateComplaintUrl = applicationProperties.getEgovHost() + "/rainmaker-pgr/v1/requests/_create";
+        locationServiceUrl = applicationProperties.getEgovHost() + "/egov-location/location/v11/boundarys/_search";
+    }
 
     @Override
     public String messageForRestCall(ObjectNode params) {
@@ -49,6 +56,7 @@ public class PGRComplaintCreate implements RestEndpoint {
 
         DocumentContext request = JsonPath.parse(pgrCreateRequestBody);
 
+        request.set("$.RequestInfo.authToken", authToken);
         request.set("$.services.[0].addressDetail.city", tenantId);
         request.set("$.services.[0].city", tenantId);
         request.set("$.services.[0].tenantId", tenantId);
@@ -73,25 +81,25 @@ public class PGRComplaintCreate implements RestEndpoint {
         }
     }
 
-    private String makeMessageForResponse(ResponseEntity<ObjectNode> responseEntity) throws UnsupportedEncodingException {
+    private String makeMessageForResponse(ResponseEntity<ObjectNode> responseEntity) throws Exception {
         if(responseEntity.getStatusCode().is2xxSuccessful()) {
             ObjectNode pgrResponse = responseEntity.getBody();
             String serviceRequestId = pgrResponse.get("services").get(0).get("serviceRequestId").asText();
             String encodedPath = URLEncoder.encode( serviceRequestId, "UTF-8" );
-            String baseUrl = host + "/citizen/complaint-details/" + encodedPath;
+            String url = applicationProperties.getEgovHost() + "/citizen/complaint-details/" + encodedPath;
 
             String message = "Complain registered successfully. You can see your complain at : ";
-            message += baseUrl;
+            message += url;
 
             return message;
         } else {
-            return "Error occurred";
+            throw new Exception("Error occured");
         }
     }
 
     private String getMohallaCode(String tenantId, String locality) {
 
-        String requestBodyString = "{\"RequestInfo\":{\"authToken\":\"b9c0115f-f6f8-4710-bd3b-f0cd48750591\"}}";
+        String requestBodyString = "{\"RequestInfo\":{\"authToken\":\"" + authToken + "\"  \"}}";
 
         Map<String, String> defaultQueryParams = new HashMap<String, String>() {{
             put("hierarchyTypeCode","ADMIN");
