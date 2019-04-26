@@ -18,6 +18,7 @@ values :
   class : org.egov.chat.xternal.valuefetch.LocalityValueFetcher
   params :
     tenantId : ^tenantId
+    authToken : ^authToken
 
 displayValuesAsOptions : true
 fuzzyMatch : 90

@@ -16,6 +16,7 @@ import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
 import org.egov.chat.config.ApplicationProperties;
+import org.egov.chat.config.JsonPointerNameConstants;
 import org.egov.chat.models.ConversationState;
 import org.egov.chat.repository.ConversationStateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,7 +68,7 @@ public class InitiateConversation {
 
     public JsonNode createOrContinueConversation(JsonNode chatNode) {
 
-        String userId = chatNode.get("user").get("userId").asText();
+        String userId = chatNode.at(JsonPointerNameConstants.userId).asText();
 
         ConversationState conversationState = conversationStateRepository.getConversationStateForUserId(userId);
 

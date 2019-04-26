@@ -15,6 +15,7 @@ import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
 import org.egov.chat.config.ApplicationProperties;
+import org.egov.chat.config.JsonPointerNameConstants;
 import org.egov.chat.service.QuestionGenerator;
 import org.egov.chat.repository.ConversationStateRepository;
 import org.egov.chat.repository.MessageRepository;
@@ -63,7 +64,7 @@ public class CreateStream {
         questionKStream.mapValues(chatNode -> {
             JsonNode nodeWithQuestion = questionGenerator.getQuestion(config, chatNode);
 
-            conversationStateRepository.updateActiveNodeForConversation(chatNode.get("conversationId").asText(),
+            conversationStateRepository.updateActiveNodeForConversation(chatNode.at(JsonPointerNameConstants.conversationId).asText(),
                     config.get("name").asText());
 
             return nodeWithQuestion;

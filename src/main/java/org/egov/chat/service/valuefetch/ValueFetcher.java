@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import org.egov.chat.config.JsonPointerNameConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -64,11 +65,9 @@ public class ValueFetcher {
 
             if(paramConfiguration.substring(0, 1).equalsIgnoreCase("^")) {
                 if(paramConfiguration.contains("tenantId")) {
-                    try {
-                        paramValue = chatNode.get("tenantId").asText();
-                    } catch (Exception e) {
-                        paramValue = "pb";
-                    }
+                    paramValue = chatNode.at(JsonPointerNameConstants.tenantId).asText();
+                } else if(paramConfiguration.contains("authToken")) {
+                    paramValue = chatNode.at(JsonPointerNameConstants.authToken).asText();
                 }
             } else {
                 paramValue = paramConfiguration;

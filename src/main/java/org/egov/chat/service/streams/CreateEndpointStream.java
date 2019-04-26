@@ -10,6 +10,7 @@ import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
+import org.egov.chat.config.JsonPointerNameConstants;
 import org.egov.chat.repository.MessageRepository;
 import org.egov.chat.service.restendpoint.RestAPI;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +44,7 @@ public class CreateEndpointStream extends CreateStream {
 
             chatNode = ((ObjectNode) chatNode).set("question", TextNode.valueOf(responseMessage));
 
-            String conversationId = chatNode.get("conversationId").asText();
+            String conversationId = chatNode.at(JsonPointerNameConstants.conversationId).asText();
             conversationStateRepository.markConversationInactive(conversationId);
 
             return chatNode;

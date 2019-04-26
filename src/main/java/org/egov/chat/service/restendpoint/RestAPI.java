@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import lombok.extern.slf4j.Slf4j;
+import org.egov.chat.config.JsonPointerNameConstants;
 import org.egov.chat.models.Message;
 import org.egov.chat.repository.MessageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Component
 public class RestAPI {
 
@@ -38,7 +41,9 @@ public class RestAPI {
     }
 
     private ObjectNode makeParamsforConfig(JsonNode config, JsonNode chatNode) {
-        String conversationId = chatNode.get("conversationId").asText();
+        String conversationId = chatNode.at(JsonPointerNameConstants.conversationId).asText();
+
+        log.info(conversationId);
 
         ObjectMapper mapper = new ObjectMapper(new JsonFactory());
         ObjectNode params = mapper.createObjectNode();
@@ -56,6 +61,9 @@ public class RestAPI {
             else
                 params.set(nodeId, NullNode.getInstance());
         }
+
+        log.info("Params of nodes : " + params.toString());
+
         ObjectNode paramConfigurations = (ObjectNode) config.get("params");
         Iterator<String> paramKeys = paramConfigurations.fieldNames();
 
@@ -67,9 +75,11 @@ public class RestAPI {
 
             if(paramConfiguration.substring(0, 1).equalsIgnoreCase("^")) {
                 if(paramConfiguration.contains("tenantId")) {
-                    paramValue = chatNode.get("tenantId").asText();
+                    paramValue = chatNode.at(JsonPointerNameConstants.tenantId).asText();
                 } else if(paramConfiguration.contains("mobileNumber")) {
-                    paramValue = chatNode.get("user").get("mobileNumber").asText();
+                    paramValue = chatNode.at(JsonPointerNameConstants.mobileNumber).asText();
+                } else if(paramConfiguration.contains("authToken")) {
+                    paramValue = chatNode.at(JsonPointerNameConstants.authToken).asText();
                 }
             } else {
                 paramValue = paramConfiguration;

@@ -16,6 +16,7 @@ import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
 import org.egov.chat.config.ApplicationProperties;
+import org.egov.chat.config.JsonPointerNameConstants;
 import org.egov.chat.repository.ConversationStateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -70,7 +71,7 @@ public class ResetCheck {
         branches[0].mapValues(chatNode -> chatNode).to(outputTopic, Produced.with(Serdes.String(), jsonSerde));
 
         branches[1].mapValues(chatNode -> {
-            String conversationId = chatNode.get("conversationId").asText();
+            String conversationId = chatNode.at(JsonPointerNameConstants.conversationId).asText();
 
             conversationStateRepository.markConversationInactive(conversationId);
 
@@ -84,7 +85,7 @@ public class ResetCheck {
 
     private boolean isResetKeyword(JsonNode chatNode) {
 
-        String answer = chatNode.get("answer").asText();
+        String answer = chatNode.at(JsonPointerNameConstants.messageContent).asText();
 
         for(String resetKeyword : resetKeywords) {
             int score = FuzzySearch.tokenSetRatio(resetKeyword, answer);

@@ -7,4 +7,5 @@ nodes : [ pgr.create.complaintType, pgr.create.locality, pgr.create.complaintDet
 params :
   tenantId : ^tenantId
   mobileNumber : ^mobileNumber
+  authToken : ^authToken
 

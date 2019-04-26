@@ -2,6 +2,7 @@ package org.egov.chat.service.validation;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import me.xdrop.fuzzywuzzy.FuzzySearch;
+import org.egov.chat.config.JsonPointerNameConstants;
 import org.egov.chat.service.valuefetch.ValueFetcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -17,7 +18,7 @@ public class FixedSetValueValidator {
     public boolean isValid(JsonNode config, JsonNode chatNode) {
         boolean displayValuesAsOptions = config.get("displayValuesAsOptions") != null ?
                 config.get("displayValuesAsOptions").asBoolean() : false;
-        String answer = chatNode.get("answer").asText();
+        String answer = chatNode.at(JsonPointerNameConstants.messageContent).asText();
         List<String> validValues = valueFetcher.getAllValidValues(config, chatNode);
 
         if(displayValuesAsOptions && checkIfAnswerIsIndex(answer)) {

@@ -10,6 +10,7 @@ import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Predicate;
 import org.apache.kafka.streams.kstream.Produced;
+import org.egov.chat.config.JsonPointerNameConstants;
 import org.egov.chat.service.AnswerExtractor;
 import org.egov.chat.service.AnswerStore;
 import org.egov.chat.config.graph.TopicNameGetter;
@@ -80,7 +81,7 @@ public class CreateBranchStream extends CreateStream {
         for(String branchName : branchNames) {
             Predicate<String, JsonNode> predicate = (s, chatNode) -> {
                 chatNode = answerExtractor.extractAnswer(config, chatNode);
-                String answer = chatNode.get("answer").asText();
+                String answer = chatNode.at(JsonPointerNameConstants.messageContent).asText();
                 if(answer.equalsIgnoreCase(branchName)) {
                     return true;
                 }

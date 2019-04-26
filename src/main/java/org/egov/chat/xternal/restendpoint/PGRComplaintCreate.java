@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
+import lombok.extern.slf4j.Slf4j;
 import org.egov.chat.config.ApplicationProperties;
 import org.egov.chat.service.restendpoint.RestEndpoint;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,7 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @Component
 public class PGRComplaintCreate implements RestEndpoint {
 
@@ -31,12 +33,11 @@ public class PGRComplaintCreate implements RestEndpoint {
     @Autowired
     private ApplicationProperties applicationProperties;
 
-    private String authToken = "b9c0115f-f6f8-4710-bd3b-f0cd48750591";
 
     private String pgrCreateComplaintUrl;
     private String locationServiceUrl;
 
-    String pgrCreateRequestBody = "{\"RequestInfo\":{\"authToken\":\"b9c0115f-f6f8-4710-bd3b-f0cd48750591\"},\"actionInfo\":[{\"media\":[]}],\"services\":[{\"addressDetail\":{\"city\":\"pb.amritsar\",\"mohalla\":\"SUN04\"},\"city\":\"pb.amritsar\",\"mohalla\":\"SUN04\",\"phone\":\"9428010077\",\"serviceCode\":\"illegalDischargeOfSewage\",\"source\":\"web\",\"tenantId\":\"pb.amritsar\"}]}";
+    String pgrCreateRequestBody = "{\"RequestInfo\":{\"authToken\":\"\"},\"actionInfo\":[{\"media\":[]}],\"services\":[{\"addressDetail\":{\"city\":\"\",\"mohalla\":\"\"},\"city\":\"\",\"mohalla\":\"\",\"phone\":\"\",\"serviceCode\":\"\",\"source\":\"web\",\"tenantId\":\"\"}]}";
 
     @PostConstruct
     public void init() {
@@ -46,6 +47,7 @@ public class PGRComplaintCreate implements RestEndpoint {
 
     @Override
     public String messageForRestCall(ObjectNode params) {
+        String authToken = params.get("authToken").asText();
         String tenantId = params.get("tenantId").asText();
         String mobileNumber = params.get("mobileNumber").asText();
         String complaintType = params.get("pgr.create.complaintType").asText();
@@ -53,6 +55,7 @@ public class PGRComplaintCreate implements RestEndpoint {
         String complaintDetails = params.get("pgr.create.complaintDetails").asText();
         String address = params.get("pgr.create.address").asText();
 
+        log.info(params.toString());
 
         DocumentContext request = JsonPath.parse(pgrCreateRequestBody);
 
@@ -60,11 +63,13 @@ public class PGRComplaintCreate implements RestEndpoint {
         request.set("$.services.[0].addressDetail.city", tenantId);
         request.set("$.services.[0].city", tenantId);
         request.set("$.services.[0].tenantId", tenantId);
-        request.set("$.services.[0].addressDetail.mohalla", getMohallaCode(tenantId, locality));
+        request.set("$.services.[0].addressDetail.mohalla", getMohallaCode(tenantId, locality, authToken));
         request.set("$.services.[0].serviceCode", complaintType);
         request.set("$.services.[0].phone", mobileNumber);
         request.set("$.services.[0].description", complaintDetails);
         request.set("$.services.[0].addressDetail.houseNoAndStreetName", address);
+
+        log.info(request.jsonString());
 
         JsonNode requestObject = null;
         try {
@@ -97,9 +102,12 @@ public class PGRComplaintCreate implements RestEndpoint {
         }
     }
 
-    private String getMohallaCode(String tenantId, String locality) {
+    private String getMohallaCode(String tenantId, String locality, String authToken) {
 
-        String requestBodyString = "{\"RequestInfo\":{\"authToken\":\"" + authToken + "\"  \"}}";
+        String requestBodyString = "{\"RequestInfo\":{\"authToken\":\"\"}}";
+
+        DocumentContext request = JsonPath.parse(requestBodyString);
+        request.set("$.RequestInfo.authToken", authToken);
 
         Map<String, String> defaultQueryParams = new HashMap<String, String>() {{
             put("hierarchyTypeCode","ADMIN");
@@ -115,7 +123,7 @@ public class PGRComplaintCreate implements RestEndpoint {
         ObjectMapper mapper = new ObjectMapper(new JsonFactory());
         ObjectNode requestBody = null;
         try {
-            requestBody = (ObjectNode) mapper.readTree(requestBodyString);
+            requestBody = (ObjectNode) mapper.readTree(request.jsonString());
         } catch (IOException e) {
             e.printStackTrace();
         }

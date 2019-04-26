@@ -31,13 +31,12 @@ public class LocalityValueFetcher implements ExternalValueFetcher {
 
     private String locationServiceUrl;
 
-    private String authToken = "b9c0115f-f6f8-4710-bd3b-f0cd48750591";
-
     private Map<String, String> defaultQueryParams = new HashMap<String, String>() {{
         put("hierarchyTypeCode","ADMIN");
         put("boundaryType", "Locality");
     }};
-    private String requestBodyString = "{\"RequestInfo\":{\"authToken\":\"b9c0115f-f6f8-4710-bd3b-f0cd48750591\"}}";
+
+    private String requestBodyString = "{\"RequestInfo\":{\"authToken\":\"\"}}";
 
     @PostConstruct
     public void init() {
@@ -47,6 +46,7 @@ public class LocalityValueFetcher implements ExternalValueFetcher {
     @Override
     public List<String> getValues(ObjectNode params) {
         String tenantId = params.get("tenantId").asText();
+        String authToken = params.get("authToken").asText();
 
         UriComponentsBuilder uriComponents = UriComponentsBuilder.fromUriString(locationServiceUrl);
         defaultQueryParams.forEach((key, value) -> uriComponents.queryParam(key, value));

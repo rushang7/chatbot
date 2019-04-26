@@ -3,6 +3,7 @@ package org.egov.chat.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import me.xdrop.fuzzywuzzy.FuzzySearch;
+import org.egov.chat.config.JsonPointerNameConstants;
 import org.egov.chat.service.valuefetch.ValueFetcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,7 +29,7 @@ public class AnswerExtractor {
         boolean displayValuesAsOptions = config.get("displayValuesAsOptions") != null ?
                 config.get("displayValuesAsOptions").asBoolean() : false;
 
-        String answer = chatNode.get("answer").asText();
+        String answer = chatNode.at(JsonPointerNameConstants.messageContent).asText();
         List<String> validValues = valueFetcher.getAllValidValues(config, chatNode);
 
         Integer answerIndex;

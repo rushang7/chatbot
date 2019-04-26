@@ -2,6 +2,7 @@ package org.egov.chat.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.egov.chat.config.JsonPointerNameConstants;
 import org.egov.chat.config.graph.TopicNameGetter;
 import org.egov.chat.repository.ConversationStateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +23,7 @@ public class InputSegregator {
 
     public void segregateAnswer(ConsumerRecord<String, JsonNode> consumerRecord) {
         JsonNode chatNode = consumerRecord.value();
-        String conversationId = chatNode.get("conversationId").asText();
+        String conversationId = chatNode.at(JsonPointerNameConstants.conversationId).asText();
 
         String activeNodeId = conversationStateRepository.getActiveNodeIdForConversation(conversationId);
 
