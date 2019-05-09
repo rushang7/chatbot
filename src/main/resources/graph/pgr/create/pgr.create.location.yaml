@@ -6,4 +6,4 @@ optional : true
 
 message : "Could you please share the location?"
 
-dataType : location
+type : location

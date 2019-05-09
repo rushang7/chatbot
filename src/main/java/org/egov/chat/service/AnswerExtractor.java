@@ -26,8 +26,7 @@ public class AnswerExtractor {
     }
 
     private JsonNode extractAnswerFromFixedSet(JsonNode config, JsonNode chatNode) {
-        boolean displayValuesAsOptions = config.get("displayValuesAsOptions") != null ?
-                config.get("displayValuesAsOptions").asBoolean() : false;
+        boolean displayValuesAsOptions = config.get("displayValuesAsOptions") != null && config.get("displayValuesAsOptions").asBoolean();
 
         String answer = chatNode.at(JsonPointerNameConstants.messageContent).asText();
         List<String> validValues = valueFetcher.getAllValidValues(config, chatNode);
@@ -48,8 +47,10 @@ public class AnswerExtractor {
         }
 
         String finalAnswer = validValues.get(answerIndex);
+
         ObjectNode objectNode = (ObjectNode) chatNode;
-        objectNode.put("answer", finalAnswer);
+        // TODO : jsonpath
+        ( (ObjectNode) objectNode.get("message")).put("content", finalAnswer);
 
         return objectNode;
     }

@@ -3,6 +3,6 @@ nodeType : step
 
 optional : true
 
-dataType : photo
+type : photo
 
 message : "Please upload the photo?"

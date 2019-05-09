@@ -8,9 +8,14 @@ import org.springframework.stereotype.Component;
 public class Validator {
 
     @Autowired
+    private TypeValidator typeValidator;
+    @Autowired
     private FixedSetValueValidator fixedSetValueValidator;
 
     public boolean isValid(JsonNode config, JsonNode chatNode) {
+
+        if(! typeValidator.isValid(config, chatNode))
+            return false;
 
         if(config.get("validationRequired") != null && config.get("validationRequired").asText().equalsIgnoreCase("true")) {
             String validatorType = config.get("validatorType").asText();

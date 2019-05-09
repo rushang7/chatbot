@@ -42,13 +42,9 @@ public class UserService {
         User user = userRepository.getUserForMobileNumber(mobileNumber);
 
         if(user != null) {                                          // has used chatbot at least once
-            if(isAuthTokenValid(user)) {
-                return user;
-            } else {
-                JsonNode loginUserObject = loginUser(mobileNumber, tenantId);
-                user = updateUserDetailsFromLogin(user, loginUserObject);
-                userRepository.updateUserDetails(user);
-            }
+            JsonNode loginUserObject = loginUser(mobileNumber, tenantId);
+            user = updateUserDetailsFromLogin(user, loginUserObject);
+            userRepository.updateUserDetails(user);
         } else {                                                    // new to chatbot
 
             user = loginOrCreateUser(mobileNumber, tenantId);
@@ -73,13 +69,6 @@ public class UserService {
 
     private String getUserNewId(String mobileNumber, String tenantId) {
         return mobileNumber;
-    }
-
-    boolean isAuthTokenValid(User user) {
-        Long currentTime = System.currentTimeMillis();
-        if(currentTime + authTokenExtraValidityThreshold < user.getExpiresAt())
-            return true;
-        return false;
     }
 
     User updateUserDetailsFromLogin(User user, JsonNode loginUserObject) {

@@ -6,4 +6,4 @@ validationRequired : false
 
 message : "Would you like to mention any addtional details?"
 
-dataType : text
+type : text

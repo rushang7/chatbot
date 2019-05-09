@@ -12,7 +12,7 @@ public class JsonPointerNameConstants {
 
     public static final String conversationId = "/conversationId";
 
-    public static final String messageContent = "/answer";
+    public static final String messageContent = "/message/content";
 
     public static final String messageType = "/message/type";
 

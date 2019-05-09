@@ -8,6 +8,8 @@ values : [ "File a complaint", "Renew Property tax" ]
 displayValuesAsOptions : true
 fuzzyMatch : 70
 
+type : text
+
 question : root.question
 input : root.input
 

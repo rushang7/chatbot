@@ -3,7 +3,7 @@ description : "Complaint Type"
 nodeType : step
 optional : false
 
-dataType : text
+type : text
 
 validationRequired: true
 validatorType: FixedSetValues
