@@ -11,12 +11,9 @@ validatorType: FixedSetValues
 message : "What is the type of complaint?"
 
 values :
-  class : org.egov.chat.xternal.valuefetch.MdmsValueFetcher
+  class : org.egov.chat.xternal.valuefetch.ComplainTypeValueFetcher
   params :
     tenantId : ^tenantId
-    moduleName : RAINMAKER-PGR
-    masterDetailsName : ServiceDefs
-    filter : $.*.serviceCode
 
 displayValuesAsOptions : true
 fuzzyMatch : 90
