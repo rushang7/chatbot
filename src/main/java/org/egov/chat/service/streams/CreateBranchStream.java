@@ -11,6 +11,7 @@ import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Predicate;
 import org.apache.kafka.streams.kstream.Produced;
 import org.egov.chat.config.JsonPointerNameConstants;
+import org.egov.chat.config.KafkaStreamsConfig;
 import org.egov.chat.service.AnswerExtractor;
 import org.egov.chat.service.AnswerStore;
 import org.egov.chat.config.graph.TopicNameGetter;
@@ -25,6 +26,9 @@ import java.util.Properties;
 @Component
 @Slf4j
 public class CreateBranchStream extends CreateStream {
+
+    @Autowired
+    private KafkaStreamsConfig kafkaStreamsConfig;
 
     @Autowired
     private Validator validator;
@@ -43,14 +47,16 @@ public class CreateBranchStream extends CreateStream {
         List<Predicate<String, JsonNode>> predicates = makePredicatesForBranches(branchNames, config);
         predicates.add(0, (s, chatNode) -> ! validator.isValid(config, chatNode));                  //First check invalid
 
-        Properties streamConfiguration = (Properties) defaultStreamConfiguration.clone();
+        Properties streamConfiguration = kafkaStreamsConfig.getDefaultStreamConfiguration();
         streamConfiguration.put(StreamsConfig.APPLICATION_ID_CONFIG, streamName);
 
         StreamsBuilder builder = new StreamsBuilder();
-        KStream<String, JsonNode> answerKStream = builder.stream(answerInputTopic, Consumed.with(Serdes.String(), jsonSerde));
+        KStream<String, JsonNode> answerKStream = builder.stream(answerInputTopic, Consumed.with(Serdes.String(),
+                kafkaStreamsConfig.getJsonSerde()));
         KStream<String, JsonNode>[] kStreamBranches = answerKStream.branch(predicates.toArray(new Predicate[predicates.size()]));
 
-        kStreamBranches[0].mapValues(value -> value).to(questionTopic, Produced.with(Serdes.String(), jsonSerde));
+        kStreamBranches[0].mapValues(value -> value).to(questionTopic, Produced.with(Serdes.String(),
+                kafkaStreamsConfig.getJsonSerde()));
 
         for(int i = 1; i < kStreamBranches.length; i++) {
             String targetNode = config.get(branchNames.get(i - 1)).asText();
@@ -59,10 +65,10 @@ public class CreateBranchStream extends CreateStream {
                 chatNode = answerExtractor.extractAnswer(config, chatNode);
                 answerStore.saveAnswer(config, chatNode);
                 return chatNode;
-            }).to(targetTopicName, Produced.with(Serdes.String(), jsonSerde));
+            }).to(targetTopicName, Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));
         }
 
-        startStream(builder, streamConfiguration);
+        kafkaStreamsConfig.startStream(builder, streamConfiguration);
 
         log.info("Branch Stream started : " + streamName + ", from : " + answerInputTopic);
     }

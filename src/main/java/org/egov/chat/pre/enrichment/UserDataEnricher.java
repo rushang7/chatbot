@@ -14,7 +14,7 @@ import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
 import org.egov.chat.config.ApplicationProperties;
 import org.egov.chat.pre.authorization.UserService;
-import org.egov.chat.util.KafkaStreamUtil;
+import org.egov.chat.config.KafkaStreamsConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -29,35 +29,25 @@ public class UserDataEnricher {
     @Autowired
     private ApplicationProperties applicationProperties;
     @Autowired
+    private KafkaStreamsConfig kafkaStreamsConfig;
+    @Autowired
     private UserService userService;
-
-    private Properties defaultStreamConfiguration;
-    private Serde<JsonNode> jsonSerde;
-
-    @PostConstruct
-    public void init() {
-        this.defaultStreamConfiguration = new Properties();
-        defaultStreamConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, applicationProperties.getKafkaHost());
-
-        Serializer<JsonNode> jsonSerializer = new JsonSerializer();
-        Deserializer<JsonNode> jsonDeserializer = new JsonDeserializer();
-        jsonSerde = Serdes.serdeFrom(jsonSerializer, jsonDeserializer);
-    }
 
 
     public void startUserDataStream(String inputTopic, String outputTopic) {
 
-        Properties streamConfiguration = (Properties) defaultStreamConfiguration.clone();
+        Properties streamConfiguration = kafkaStreamsConfig.getDefaultStreamConfiguration();
         streamConfiguration.put(StreamsConfig.APPLICATION_ID_CONFIG, streamName);
         StreamsBuilder builder = new StreamsBuilder();
-        KStream<String, JsonNode> messagesKStream = builder.stream(inputTopic, Consumed.with(Serdes.String(), jsonSerde));
+        KStream<String, JsonNode> messagesKStream = builder.stream(inputTopic, Consumed.with(Serdes.String(),
+                kafkaStreamsConfig.getJsonSerde()));
 
         messagesKStream.mapValues(chatNode -> {
             userService.addLoggedInUser(chatNode);
             return chatNode;
-        }).to(outputTopic, Produced.with(Serdes.String(), jsonSerde));
+        }).to(outputTopic, Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));
 
-        KafkaStreamUtil.startStream(builder, streamConfiguration);
+        kafkaStreamsConfig.startStream(builder, streamConfiguration);
     }
 
 

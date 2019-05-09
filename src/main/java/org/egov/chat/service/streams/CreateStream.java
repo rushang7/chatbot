@@ -16,6 +16,7 @@ import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
 import org.egov.chat.config.ApplicationProperties;
 import org.egov.chat.config.JsonPointerNameConstants;
+import org.egov.chat.config.KafkaStreamsConfig;
 import org.egov.chat.service.QuestionGenerator;
 import org.egov.chat.repository.ConversationStateRepository;
 import org.egov.chat.repository.MessageRepository;
@@ -29,11 +30,8 @@ import java.util.Properties;
 @Slf4j
 public class CreateStream {
 
-    protected Properties defaultStreamConfiguration;
-    protected Serde<JsonNode> jsonSerde;
-
     @Autowired
-    private ApplicationProperties applicationProperties;
+    private KafkaStreamsConfig kafkaStreamsConfig;
 
     @Autowired
     protected ConversationStateRepository conversationStateRepository;
@@ -41,25 +39,16 @@ public class CreateStream {
     @Autowired
     protected QuestionGenerator questionGenerator;
 
-    @PostConstruct
-    public void init() {
-        this.defaultStreamConfiguration = new Properties();
-        defaultStreamConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, applicationProperties.getKafkaHost());
-
-        Serializer<JsonNode> jsonSerializer = new JsonSerializer();
-        Deserializer<JsonNode> jsonDeserializer = new JsonDeserializer();
-        jsonSerde = Serdes.serdeFrom(jsonSerializer, jsonDeserializer);
-    }
-
     public void createQuestionStreamForConfig(JsonNode config, String questionTopic, String sendMessageTopic) {
 
         String streamName = config.get("name").asText() + "-question";
 
-        Properties streamConfiguration = (Properties) defaultStreamConfiguration.clone();
+        Properties streamConfiguration = kafkaStreamsConfig.getDefaultStreamConfiguration();
         streamConfiguration.put(StreamsConfig.APPLICATION_ID_CONFIG, streamName);
 
         StreamsBuilder builder = new StreamsBuilder();
-        KStream<String, JsonNode> questionKStream = builder.stream(questionTopic, Consumed.with(Serdes.String(), jsonSerde));
+        KStream<String, JsonNode> questionKStream = builder.stream(questionTopic, Consumed.with(Serdes.String(),
+                kafkaStreamsConfig.getJsonSerde()));
 
         questionKStream.mapValues(chatNode -> {
             JsonNode nodeWithQuestion = questionGenerator.getQuestion(config, chatNode);
@@ -68,18 +57,11 @@ public class CreateStream {
                     config.get("name").asText());
 
             return nodeWithQuestion;
-        }).to(sendMessageTopic, Produced.with(Serdes.String(), jsonSerde));
+        }).to(sendMessageTopic, Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));
 
-        startStream(builder, streamConfiguration);
+        kafkaStreamsConfig.startStream(builder, streamConfiguration);
 
         log.info("Stream started : " + streamName + ", from : " + questionTopic + ", to : " + sendMessageTopic);
-    }
-
-    protected void startStream(StreamsBuilder builder, Properties streamConfiguration) {
-        final KafkaStreams streams = new KafkaStreams(builder.build(), streamConfiguration);
-        streams.cleanUp();
-        streams.start();
-        Runtime.getRuntime().addShutdownHook(new Thread(streams::close));
     }
 
 }

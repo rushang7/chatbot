@@ -9,7 +9,6 @@ import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.connect.json.JsonDeserializer;
 import org.apache.kafka.connect.json.JsonSerializer;
-import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.kstream.Consumed;
@@ -19,9 +18,8 @@ import org.egov.chat.config.ApplicationProperties;
 import org.egov.chat.config.JsonPointerNameConstants;
 import org.egov.chat.models.ConversationState;
 import org.egov.chat.repository.ConversationStateRepository;
-import org.egov.chat.util.KafkaStreamUtil;
+import org.egov.chat.config.KafkaStreamsConfig;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -34,34 +32,23 @@ public class InitiateConversation {
     private String streamName = "initiate-conversation";
 
     @Autowired
-    private ApplicationProperties applicationProperties;
+    private KafkaStreamsConfig kafkaStreamsConfig;
 
     @Autowired
     private ConversationStateRepository conversationStateRepository;
 
-    private Properties defaultStreamConfiguration;
-    private Serde<JsonNode> jsonSerde;
-
-    @PostConstruct
-    public void init() {
-        this.defaultStreamConfiguration = new Properties();
-        defaultStreamConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, applicationProperties.getKafkaHost());
-
-        Serializer<JsonNode> jsonSerializer = new JsonSerializer();
-        Deserializer<JsonNode> jsonDeserializer = new JsonDeserializer();
-        jsonSerde = Serdes.serdeFrom(jsonSerializer, jsonDeserializer);
-    }
-
     public void startStream(String inputTopic, String outputTopic) {
 
-        Properties streamConfiguration = (Properties) defaultStreamConfiguration.clone();
+        Properties streamConfiguration = kafkaStreamsConfig.getDefaultStreamConfiguration();
         streamConfiguration.put(StreamsConfig.APPLICATION_ID_CONFIG, streamName);
         StreamsBuilder builder = new StreamsBuilder();
-        KStream<String, JsonNode> messagesKStream = builder.stream(inputTopic, Consumed.with(Serdes.String(), jsonSerde));
+        KStream<String, JsonNode> messagesKStream = builder.stream(inputTopic, Consumed.with(Serdes.String(),
+                kafkaStreamsConfig.getJsonSerde()));
 
-        messagesKStream.mapValues(chatNode -> createOrContinueConversation(chatNode)).to(outputTopic, Produced.with(Serdes.String(), jsonSerde));
+        messagesKStream.mapValues(chatNode -> createOrContinueConversation(chatNode)).to(outputTopic,
+                Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));
 
-        KafkaStreamUtil.startStream(builder, streamConfiguration);
+        kafkaStreamsConfig.startStream(builder, streamConfiguration);
     }
 
     public JsonNode createOrContinueConversation(JsonNode chatNode) {

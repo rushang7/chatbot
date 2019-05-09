@@ -8,6 +8,7 @@ import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
+import org.egov.chat.config.KafkaStreamsConfig;
 import org.egov.chat.service.AnswerExtractor;
 import org.egov.chat.service.AnswerStore;
 import org.egov.chat.service.validation.Validator;
@@ -21,6 +22,9 @@ import java.util.Properties;
 public class CreateStepStream extends CreateStream {
 
     @Autowired
+    private KafkaStreamsConfig kafkaStreamsConfig;
+
+    @Autowired
     private Validator validator;
     @Autowired
     private AnswerExtractor answerExtractor;
@@ -32,11 +36,12 @@ public class CreateStepStream extends CreateStream {
 
         String streamName = config.get("name").asText() + "-answer";
 
-        Properties streamConfiguration = (Properties) defaultStreamConfiguration.clone();
+        Properties streamConfiguration = kafkaStreamsConfig.getDefaultStreamConfiguration();
         streamConfiguration.put(StreamsConfig.APPLICATION_ID_CONFIG, streamName);
 
         StreamsBuilder builder = new StreamsBuilder();
-        KStream<String, JsonNode> answerKStream = builder.stream(answerInputTopic, Consumed.with(Serdes.String(), jsonSerde));
+        KStream<String, JsonNode> answerKStream = builder.stream(answerInputTopic, Consumed.with(Serdes.String(),
+                kafkaStreamsConfig.getJsonSerde()));
 
         KStream<String, JsonNode>[] branches = answerKStream.branch(
                 (key, chatNode) -> validator.isValid(config, chatNode),
@@ -50,11 +55,11 @@ public class CreateStepStream extends CreateStream {
             answerStore.saveAnswer(config, chatNode);
 
             return chatNode;
-        }).to(answerOutputTopic, Produced.with(Serdes.String(), jsonSerde));
+        }).to(answerOutputTopic, Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));
 
-        branches[1].mapValues(value -> value).to(questionTopic, Produced.with(Serdes.String(), jsonSerde));
+        branches[1].mapValues(value -> value).to(questionTopic, Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));
 
-        startStream(builder, streamConfiguration);
+        kafkaStreamsConfig.startStream(builder, streamConfiguration);
 
         log.info("Stream started : " + streamName + ", from : " + answerInputTopic + ", to : " + answerOutputTopic +
                 " OR to : " + questionTopic);

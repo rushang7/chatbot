@@ -11,6 +11,7 @@ import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
 import org.egov.chat.config.JsonPointerNameConstants;
+import org.egov.chat.config.KafkaStreamsConfig;
 import org.egov.chat.repository.MessageRepository;
 import org.egov.chat.service.restendpoint.RestAPI;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,9 @@ import java.util.Properties;
 public class CreateEndpointStream extends CreateStream {
 
     @Autowired
+    private KafkaStreamsConfig kafkaStreamsConfig;
+
+    @Autowired
     private RestAPI restAPI;
 
     @Autowired
@@ -32,11 +36,12 @@ public class CreateEndpointStream extends CreateStream {
 
         String streamName = config.get("name").asText() + "-answer";
 
-        Properties streamConfiguration = (Properties) defaultStreamConfiguration.clone();
+        Properties streamConfiguration = kafkaStreamsConfig.getDefaultStreamConfiguration();
         streamConfiguration.put(StreamsConfig.APPLICATION_ID_CONFIG, streamName);
 
         StreamsBuilder builder = new StreamsBuilder();
-        KStream<String, JsonNode> answerKStream = builder.stream(inputTopic, Consumed.with(Serdes.String(), jsonSerde));
+        KStream<String, JsonNode> answerKStream = builder.stream(inputTopic, Consumed.with(Serdes.String(),
+                kafkaStreamsConfig.getJsonSerde()));
 
         answerKStream.mapValues(chatNode -> {
 
@@ -48,9 +53,9 @@ public class CreateEndpointStream extends CreateStream {
             conversationStateRepository.markConversationInactive(conversationId);
 
             return chatNode;
-        }).to(sendMessageTopic, Produced.with(Serdes.String(), jsonSerde));
+        }).to(sendMessageTopic, Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));
 
-        startStream(builder, streamConfiguration);
+        kafkaStreamsConfig.startStream(builder, streamConfiguration);
 
         log.info("Stream started : " + streamName + ", from : " + inputTopic + ", to : " + sendMessageTopic);
     }
