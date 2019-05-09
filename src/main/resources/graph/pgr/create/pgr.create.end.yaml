@@ -5,7 +5,8 @@ class : org.egov.chat.xternal.restendpoint.PGRComplaintCreate
 
 nodes : [ pgr.create.complaintType, pgr.create.locality, pgr.create.complaintDetails, pgr.create.address ]
 params :
-  tenantId : ^tenantId
-  mobileNumber : ^mobileNumber
-  authToken : ^authToken
-
+  tenantId : /tenantId
+  mobileNumber : /user/mobileNumber
+  authToken : /user/authToken
+  refreshToken : /user/refreshToken
+  userInfo : /user/userInfo

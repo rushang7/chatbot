@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import lombok.extern.slf4j.Slf4j;
 import org.egov.chat.models.Message;
 import org.junit.Test;
 
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 public class PGRComplaintCreateTest {
 
     @Test
@@ -30,7 +32,9 @@ public class PGRComplaintCreateTest {
 
         objectNode.set("asd", TextNode.valueOf("qwe"));
 
-        System.out.println(objectNode.at("/asd"));
+        log.info(String.valueOf(objectNode.at("/asd")));
+
+        log.info(objectNode.toString());
 
 
     }

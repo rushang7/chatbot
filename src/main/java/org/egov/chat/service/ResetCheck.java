@@ -18,6 +18,7 @@ import org.apache.kafka.streams.kstream.Produced;
 import org.egov.chat.config.ApplicationProperties;
 import org.egov.chat.config.JsonPointerNameConstants;
 import org.egov.chat.repository.ConversationStateRepository;
+import org.egov.chat.util.KafkaStreamUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -40,8 +41,6 @@ public class ResetCheck {
 
     @Autowired
     private ConversationStateRepository conversationStateRepository;
-    @Autowired
-    private KafkaTemplate<String, JsonNode> kafkaTemplate;
 
     private Properties defaultStreamConfiguration;
     private Serde<JsonNode> jsonSerde;
@@ -78,9 +77,7 @@ public class ResetCheck {
             return chatNode;
         }).to(resetTopic, Produced.with(Serdes.String(), jsonSerde));
 
-
-        startStream(builder, streamConfiguration);
-
+        KafkaStreamUtil.startStream(builder, streamConfiguration);
     }
 
     private boolean isResetKeyword(JsonNode chatNode) {
@@ -95,14 +92,5 @@ public class ResetCheck {
 
         return false;
     }
-
-
-    private void startStream(StreamsBuilder builder, Properties streamConfiguration) {
-        final KafkaStreams streams = new KafkaStreams(builder.build(), streamConfiguration);
-        streams.cleanUp();
-        streams.start();
-        Runtime.getRuntime().addShutdownHook(new Thread(streams::close));
-    }
-
 
 }

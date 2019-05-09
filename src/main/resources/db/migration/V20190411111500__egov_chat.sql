@@ -7,6 +7,9 @@ CREATE TABLE eg_chat_user(
     user_id character varying(100),
     mobile_number character varying(50),
     auth_token character varying(100),
+    refresh_token character varying(100),
+    user_info character varying(1000),
+    expires_at bigint,
     PRIMARY KEY (id),
     UNIQUE (user_id)
 );

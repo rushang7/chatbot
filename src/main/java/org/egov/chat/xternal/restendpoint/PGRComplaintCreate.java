@@ -48,18 +48,21 @@ public class PGRComplaintCreate implements RestEndpoint {
     @Override
     public String messageForRestCall(ObjectNode params) {
         String authToken = params.get("authToken").asText();
+        String refreshToken = params.get("refreshToken").asText();
         String tenantId = params.get("tenantId").asText();
         String mobileNumber = params.get("mobileNumber").asText();
         String complaintType = params.get("pgr.create.complaintType").asText();
         String locality = params.get("pgr.create.locality").asText();
         String complaintDetails = params.get("pgr.create.complaintDetails").asText();
         String address = params.get("pgr.create.address").asText();
+        DocumentContext userInfo = JsonPath.parse(params.get("userInfo").toString());
 
-        log.info(params.toString());
+        log.info(params.asText());
 
         DocumentContext request = JsonPath.parse(pgrCreateRequestBody);
 
         request.set("$.RequestInfo.authToken", authToken);
+        request.set("$.RequestInfo.userInfo", userInfo);
         request.set("$.services.[0].addressDetail.city", tenantId);
         request.set("$.services.[0].city", tenantId);
         request.set("$.services.[0].tenantId", tenantId);
@@ -80,18 +83,19 @@ public class PGRComplaintCreate implements RestEndpoint {
 
         try {
             ResponseEntity<ObjectNode> response = restTemplate.postForEntity(pgrCreateComplaintUrl, requestObject, ObjectNode.class);
-            return makeMessageForResponse(response);
+            return makeMessageForResponse(response, refreshToken);
         } catch (Exception e) {
             return "Error occurred";
         }
     }
 
-    private String makeMessageForResponse(ResponseEntity<ObjectNode> responseEntity) throws Exception {
+    private String makeMessageForResponse(ResponseEntity<ObjectNode> responseEntity, String token) throws Exception {
         if(responseEntity.getStatusCode().is2xxSuccessful()) {
             ObjectNode pgrResponse = responseEntity.getBody();
             String serviceRequestId = pgrResponse.get("services").get(0).get("serviceRequestId").asText();
             String encodedPath = URLEncoder.encode( serviceRequestId, "UTF-8" );
             String url = applicationProperties.getEgovHost() + "/citizen/complaint-details/" + encodedPath;
+            url += "?token=" + token;
 
             String message = "Complain registered successfully. You can see your complain at : ";
             message += url;

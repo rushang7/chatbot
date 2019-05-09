@@ -73,21 +73,14 @@ public class RestAPI {
 
             String paramConfiguration = paramConfigurations.get(key).asText();
 
-            if(paramConfiguration.substring(0, 1).equalsIgnoreCase("^")) {
-                if(paramConfiguration.contains("tenantId")) {
-                    paramValue = chatNode.at(JsonPointerNameConstants.tenantId).asText();
-                } else if(paramConfiguration.contains("mobileNumber")) {
-                    paramValue = chatNode.at(JsonPointerNameConstants.mobileNumber).asText();
-                } else if(paramConfiguration.contains("authToken")) {
-                    paramValue = chatNode.at(JsonPointerNameConstants.authToken).asText();
-                }
+            if(paramConfiguration.substring(0, 1).equalsIgnoreCase("/")) {
+                paramValue = chatNode.at(paramConfiguration).asText();
             } else {
                 paramValue = paramConfiguration;
             }
 
             params.set(key, TextNode.valueOf(paramValue));
         }
-
 
         return params;
     }

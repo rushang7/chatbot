@@ -1,5 +1,7 @@
 package org.egov.chat.config;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.PropertySource;
@@ -16,4 +18,8 @@ public class AppConfig {
         return new RestTemplate();
     }
 
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper(new JsonFactory());
+    }
 }
