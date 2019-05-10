@@ -14,6 +14,10 @@ public class Validator {
 
     public boolean isValid(JsonNode config, JsonNode chatNode) {
 
+        if(! (config.get("validationRequired") != null && config.get("validationRequired").asText()
+                .equalsIgnoreCase("true")))
+            return true;
+
         if(! typeValidator.isValid(config, chatNode))
             return false;
 
