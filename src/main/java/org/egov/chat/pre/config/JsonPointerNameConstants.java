@@ -2,7 +2,7 @@ package org.egov.chat.pre.config;
 
 public class JsonPointerNameConstants {
 
-    public static String recepientNumber = "/recepient/to";
+    public static String recipientNumber = "/recipient/to";
 
     public static String mobileNumber = "/user/mobileNumber";
 
