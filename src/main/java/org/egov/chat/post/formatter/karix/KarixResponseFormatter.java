@@ -62,8 +62,14 @@ public class KarixResponseFormatter implements ResponseFormatter {
         KStream<String, JsonNode> messagesKStream = builder.stream(inputTopic, Consumed.with(Serdes.String(),
                 kafkaStreamsConfig.getJsonSerde()));
 
-        messagesKStream.mapValues(response -> getTransformedResponse(response))
-                .to(outputTopic, Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));
+        messagesKStream.mapValues(response -> {
+            try {
+                return getTransformedResponse(response);
+            } catch (Exception e) {
+                log.error(e.getMessage());
+                return null;
+            }
+        }).to(outputTopic, Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));
 
         kafkaStreamsConfig.startStream(builder, streamConfiguration);
 

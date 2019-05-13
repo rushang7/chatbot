@@ -2,6 +2,7 @@ package org.egov.chat.pre.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 import java.util.Properties;
 
+@Slf4j
 @Service
 public class TenantIdEnricher {
 
@@ -48,9 +50,14 @@ public class TenantIdEnricher {
                 kafkaStreamsConfig.getJsonSerde()));
 
         messagesKStream.mapValues(chatNode -> {
-            String recipientNumber = chatNode.at(JsonPointerNameConstants.recipientNumber).asText();
-            ( (ObjectNode) chatNode).put("tenantId", getTenantIdFor(recipientNumber));
-            return chatNode;
+            try {
+                String recipientNumber = chatNode.at(JsonPointerNameConstants.recipientNumber).asText();
+                ((ObjectNode) chatNode).put("tenantId", getTenantIdFor(recipientNumber));
+                return chatNode;
+            } catch (Exception e) {
+                log.error(e.getMessage());
+                return null;
+            }
         }).to(outputTopic, Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));
 
         kafkaStreamsConfig.startStream(builder, streamConfiguration);

@@ -44,15 +44,19 @@ public class CreateEndpointStream extends CreateStream {
                 kafkaStreamsConfig.getJsonSerde()));
 
         answerKStream.mapValues(chatNode -> {
+            try {
+                String responseMessage = restAPI.makeRestEndpointCall(config, chatNode);
 
-            String responseMessage = restAPI.makeRestEndpointCall(config, chatNode);
+                chatNode = ((ObjectNode) chatNode).set("question", TextNode.valueOf(responseMessage));
 
-            chatNode = ((ObjectNode) chatNode).set("question", TextNode.valueOf(responseMessage));
+                String conversationId = chatNode.at(JsonPointerNameConstants.conversationId).asText();
+                conversationStateRepository.markConversationInactive(conversationId);
 
-            String conversationId = chatNode.at(JsonPointerNameConstants.conversationId).asText();
-            conversationStateRepository.markConversationInactive(conversationId);
-
-            return chatNode;
+                return chatNode;
+            } catch (Exception e) {
+                log.error(e.getMessage());
+                return null;
+            }
         }).to(sendMessageTopic, Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));
 
         kafkaStreamsConfig.startStream(builder, streamConfiguration);

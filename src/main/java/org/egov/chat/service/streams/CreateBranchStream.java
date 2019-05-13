@@ -62,9 +62,16 @@ public class CreateBranchStream extends CreateStream {
             String targetNode = config.get(branchNames.get(i - 1)).asText();
             String targetTopicName = topicNameGetter.getQuestionTopicNameForNode(targetNode);
             kStreamBranches[i].mapValues(chatNode -> {
-                chatNode = answerExtractor.extractAnswer(config, chatNode);
-                answerStore.saveAnswer(config, chatNode);
-                return chatNode;
+                try {
+                    chatNode = answerExtractor.extractAnswer(config, chatNode);
+
+                    answerStore.saveAnswer(config, chatNode);
+
+                    return chatNode;
+                } catch (Exception e) {
+                    log.error(e.getMessage());
+                    return null;
+                }
             }).to(targetTopicName, Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));
         }
 

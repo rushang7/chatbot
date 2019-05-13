@@ -87,8 +87,14 @@ public class KarixRequestFormatter implements RequestFormatter {
                 (key, value) -> true
         );
 
-        branches[0].mapValues(request -> getTransformedRequest(request))
-                .to(outputTopic, Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));
+        branches[0].mapValues(request -> {
+            try {
+                return getTransformedRequest(request);
+            } catch (Exception e) {
+                log.error(e.getMessage());
+                return null;
+            }
+        }).to(outputTopic, Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));
 
         branches[1].mapValues(request -> request).to(errorTopic, Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));
 

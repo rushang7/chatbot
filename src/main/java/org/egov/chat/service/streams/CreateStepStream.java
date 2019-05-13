@@ -49,12 +49,16 @@ public class CreateStepStream extends CreateStream {
         );
 
         branches[0].mapValues(chatNode -> {
+            try {
+                chatNode = answerExtractor.extractAnswer(config, chatNode);
 
-            chatNode = answerExtractor.extractAnswer(config, chatNode);
+                answerStore.saveAnswer(config, chatNode);
 
-            answerStore.saveAnswer(config, chatNode);
-
-            return chatNode;
+                return chatNode;
+            } catch (Exception e) {
+                log.error(e.getMessage());
+                return null;
+            }
         }).to(answerOutputTopic, Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));
 
         branches[1].mapValues(value -> value).to(questionTopic, Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));

@@ -3,6 +3,7 @@ package org.egov.chat.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
@@ -26,6 +27,7 @@ import javax.annotation.PostConstruct;
 import java.util.Properties;
 import java.util.UUID;
 
+@Slf4j
 @Service
 public class InitiateConversation {
 
@@ -45,8 +47,14 @@ public class InitiateConversation {
         KStream<String, JsonNode> messagesKStream = builder.stream(inputTopic, Consumed.with(Serdes.String(),
                 kafkaStreamsConfig.getJsonSerde()));
 
-        messagesKStream.mapValues(chatNode -> createOrContinueConversation(chatNode)).to(outputTopic,
-                Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));
+        messagesKStream.mapValues(chatNode -> {
+            try {
+                return createOrContinueConversation(chatNode);
+            } catch (Exception e) {
+                log.error(e.getMessage());
+                return null;
+            }
+        }).to(outputTopic, Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));
 
         kafkaStreamsConfig.startStream(builder, streamConfiguration);
     }

@@ -21,19 +21,18 @@ public class KarixRestCall {
     @Autowired
     private RestTemplate restTemplate;
 
-
-
     public void sendMessage(JsonNode response) {
+        try {
+            HttpHeaders httpHeaders = getDefaultHttpHeaders();
 
+            HttpEntity<JsonNode> request = new HttpEntity<>(response, httpHeaders);
 
+            ResponseEntity<JsonNode> karixResponse = restTemplate.postForEntity(karixEndpoint, request, JsonNode.class);
 
-        HttpHeaders httpHeaders = getDefaultHttpHeaders();
-
-        HttpEntity<JsonNode> request = new HttpEntity<>(response, httpHeaders);
-
-        ResponseEntity<JsonNode> karixResponse = restTemplate.postForEntity(karixEndpoint, request, JsonNode.class);
-
-        log.info("Karix Send Message Response : " + karixResponse.toString());
+            log.info("Karix Send Message Response : " + karixResponse.toString());
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
 
     }
 

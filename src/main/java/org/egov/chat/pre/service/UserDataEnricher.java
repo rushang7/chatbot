@@ -1,6 +1,7 @@
 package org.egov.chat.pre.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Properties;
 
+@Slf4j
 @Service
 public class UserDataEnricher {
 
@@ -37,8 +39,13 @@ public class UserDataEnricher {
                 kafkaStreamsConfig.getJsonSerde()));
 
         messagesKStream.mapValues(chatNode -> {
-            userService.addLoggedInUser(chatNode);
-            return chatNode;
+            try {
+                userService.addLoggedInUser(chatNode);
+                return chatNode;
+            } catch (Exception e) {
+                log.error("Login error : " + e.getMessage());
+                return null;
+            }
         }).to(outputTopic, Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));
 
         kafkaStreamsConfig.startStream(builder, streamConfiguration);

@@ -51,12 +51,17 @@ public class CreateStream {
                 kafkaStreamsConfig.getJsonSerde()));
 
         questionKStream.mapValues(chatNode -> {
-            JsonNode nodeWithQuestion = questionGenerator.getQuestion(config, chatNode);
+            try {
+                JsonNode nodeWithQuestion = questionGenerator.getQuestion(config, chatNode);
 
-            conversationStateRepository.updateActiveNodeForConversation(chatNode.at(JsonPointerNameConstants.conversationId).asText(),
-                    config.get("name").asText());
+                conversationStateRepository.updateActiveNodeForConversation(chatNode.at(JsonPointerNameConstants.conversationId).asText(),
+                        config.get("name").asText());
 
-            return nodeWithQuestion;
+                return nodeWithQuestion;
+            } catch (Exception e) {
+                log.error(e.getMessage());
+                return null;
+            }
         }).to(sendMessageTopic, Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));
 
         kafkaStreamsConfig.startStream(builder, streamConfiguration);

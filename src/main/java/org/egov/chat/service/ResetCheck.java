@@ -49,11 +49,15 @@ public class ResetCheck {
         branches[0].mapValues(chatNode -> chatNode).to(outputTopic, Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));
 
         branches[1].mapValues(chatNode -> {
-            String conversationId = chatNode.at(JsonPointerNameConstants.conversationId).asText();
+            try {
+                String conversationId = chatNode.at(JsonPointerNameConstants.conversationId).asText();
 
-            conversationStateRepository.markConversationInactive(conversationId);
+                conversationStateRepository.markConversationInactive(conversationId);
 
-            return chatNode;
+                return chatNode;
+            } catch (Exception e) {
+                return null;
+            }
         }).to(resetTopic, Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));
 
         kafkaStreamsConfig.startStream(builder, streamConfiguration);

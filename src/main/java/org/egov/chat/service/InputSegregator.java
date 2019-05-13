@@ -1,6 +1,7 @@
 package org.egov.chat.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.egov.chat.config.JsonPointerNameConstants;
 import org.egov.chat.config.graph.TopicNameGetter;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class InputSegregator {
 
@@ -22,14 +24,18 @@ public class InputSegregator {
     private KafkaTemplate<String, JsonNode> kafkaTemplate;
 
     public void segregateAnswer(ConsumerRecord<String, JsonNode> consumerRecord) {
-        JsonNode chatNode = consumerRecord.value();
-        String conversationId = chatNode.at(JsonPointerNameConstants.conversationId).asText();
+        try {
+            JsonNode chatNode = consumerRecord.value();
+            String conversationId = chatNode.at(JsonPointerNameConstants.conversationId).asText();
 
-        String activeNodeId = conversationStateRepository.getActiveNodeIdForConversation(conversationId);
+            String activeNodeId = conversationStateRepository.getActiveNodeIdForConversation(conversationId);
 
-        String topic = getOutputTopcName(activeNodeId);
+            String topic = getOutputTopcName(activeNodeId);
 
-        kafkaTemplate.send(topic, consumerRecord.key(), chatNode);
+            kafkaTemplate.send(topic, consumerRecord.key(), chatNode);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
     }
 
     private String getOutputTopcName(String activeNodeId) {
