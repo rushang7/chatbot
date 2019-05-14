@@ -27,4 +27,4 @@ CREATE TABLE eg_chat_message(
     (conversation_id) ON DELETE CASCADE
 );
 
-CREATE UNIQUE INDEX eg_chat_message_idx_conversation_id ON eg_chat_message (conversation_id);
+CREATE INDEX eg_chat_message_idx_conversation_id ON eg_chat_message (conversation_id);
