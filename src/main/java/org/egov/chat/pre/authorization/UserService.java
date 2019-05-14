@@ -3,16 +3,12 @@ package org.egov.chat.pre.authorization;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.ser.DefaultSerializerProvider;
 import org.egov.chat.pre.config.JsonPointerNameConstants;
 import org.egov.chat.pre.models.User;
-import org.egov.chat.pre.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.Iterator;
 
 @Service
 public class UserService {
@@ -24,8 +20,6 @@ public class UserService {
     @Autowired
     private LoginService loginService;
 
-    @Autowired
-    private UserRepository userRepository;
     private Long authTokenExtraValidityThreshold = 600000L;              // 10 minutes
 
     public JsonNode addLoggedInUser(JsonNode chatNode) {
@@ -39,18 +33,8 @@ public class UserService {
     }
 
     User getUser(String mobileNumber, String tenantId) {
-        User user = userRepository.getUserForMobileNumber(mobileNumber);
+        User user = loginOrCreateUser(mobileNumber, tenantId);
 
-        if(user != null) {                                          // has used chatbot at least once
-            JsonNode loginUserObject = loginUser(mobileNumber, tenantId);
-            user = updateUserDetailsFromLogin(user, loginUserObject);
-            userRepository.updateUserDetails(user);
-        } else {                                                    // new to chatbot
-
-            user = loginOrCreateUser(mobileNumber, tenantId);
-            userRepository.insertUser(user);
-
-        }
         return user;
     }
 
