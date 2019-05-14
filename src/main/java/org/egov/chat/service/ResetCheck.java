@@ -1,6 +1,7 @@
 package org.egov.chat.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import lombok.extern.slf4j.Slf4j;
 import me.xdrop.fuzzywuzzy.FuzzySearch;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -19,6 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
+@Slf4j
 @Service
 public class ResetCheck {
 
@@ -64,16 +66,20 @@ public class ResetCheck {
     }
 
     private boolean isResetKeyword(JsonNode chatNode) {
+        try {
+            String answer = chatNode.at(JsonPointerNameConstants.messageContent).asText();
 
-        String answer = chatNode.at(JsonPointerNameConstants.messageContent).asText();
+            for (String resetKeyword : resetKeywords) {
+                int score = FuzzySearch.tokenSetRatio(resetKeyword, answer);
+                if (score >= fuzzymatchScoreThreshold)
+                    return true;
+            }
 
-        for(String resetKeyword : resetKeywords) {
-            int score = FuzzySearch.tokenSetRatio(resetKeyword, answer);
-            if(score >= fuzzymatchScoreThreshold)
-                return true;
+            return false;
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return false;
         }
-
-        return false;
     }
 
 }

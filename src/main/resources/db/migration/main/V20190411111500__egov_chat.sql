@@ -12,7 +12,7 @@ CREATE TABLE eg_chat_conversation_state(
 );
 
 CREATE UNIQUE INDEX eg_chat_conversation_state_idx_conversation_id  ON eg_chat_conversation_state (conversation_id);
-CREATE UNIQUE INDEX eg_chat_conversation_state_idx_user_id ON eg_chat_conversation_state (user_id);
+CREATE INDEX eg_chat_conversation_state_idx_user_id ON eg_chat_conversation_state (user_id);
 CREATE INDEX eg_chat_conversation_state_idx_active ON eg_chat_conversation_state (active);
 
 CREATE TABLE eg_chat_message(
