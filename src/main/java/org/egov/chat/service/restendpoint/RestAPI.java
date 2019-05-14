@@ -43,8 +43,6 @@ public class RestAPI {
     private ObjectNode makeParamsforConfig(JsonNode config, JsonNode chatNode) {
         String conversationId = chatNode.at(JsonPointerNameConstants.conversationId).asText();
 
-        log.info(conversationId);
-
         ObjectMapper mapper = new ObjectMapper(new JsonFactory());
         ObjectNode params = mapper.createObjectNode();
 
@@ -61,8 +59,6 @@ public class RestAPI {
             else
                 params.set(nodeId, NullNode.getInstance());
         }
-
-        log.info("Params of nodes : " + params.toString());
 
         ObjectNode paramConfigurations = (ObjectNode) config.get("params");
         Iterator<String> paramKeys = paramConfigurations.fieldNames();

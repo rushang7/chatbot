@@ -65,7 +65,7 @@ public class CreateStepStream extends CreateStream {
 
         kafkaStreamsConfig.startStream(builder, streamConfiguration);
 
-        log.info("Stream started : " + streamName + ", from : " + answerInputTopic + ", to : " + answerOutputTopic +
+        log.info("Step Stream started : " + streamName + ", from : " + answerInputTopic + ", to : " + answerOutputTopic +
                 " OR to : " + questionTopic);
     }
 

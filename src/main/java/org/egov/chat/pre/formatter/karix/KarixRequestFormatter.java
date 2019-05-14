@@ -36,7 +36,7 @@ public class KarixRequestFormatter implements RequestFormatter {
     public boolean isValid(JsonNode inputRequest) {
 
         try {
-            log.info("Karix Request Content Type : " + inputRequest.at(KairxJsonPointerConstants.contentType).asText());
+            log.debug("Karix Request Content Type : " + inputRequest.at(KairxJsonPointerConstants.contentType).asText());
             if(inputRequest.at(KairxJsonPointerConstants.contentType).asText().equalsIgnoreCase("text")) {
 
                 return true;

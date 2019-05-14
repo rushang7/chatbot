@@ -57,8 +57,6 @@ public class PGRComplaintCreate implements RestEndpoint {
         String address = params.get("pgr.create.address").asText();
         DocumentContext userInfo = JsonPath.parse(params.get("userInfo").toString());
 
-        log.info(params.asText());
-
         DocumentContext request = JsonPath.parse(pgrCreateRequestBody);
 
         request.set("$.RequestInfo.authToken", authToken);
@@ -72,7 +70,7 @@ public class PGRComplaintCreate implements RestEndpoint {
         request.set("$.services.[0].description", complaintDetails);
         request.set("$.services.[0].addressDetail.houseNoAndStreetName", address);
 
-        log.info(request.jsonString());
+        log.info("PGR Create complaint request : " + request.jsonString());
 
         JsonNode requestObject = null;
         try {

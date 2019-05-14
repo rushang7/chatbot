@@ -61,7 +61,7 @@ public class CreateEndpointStream extends CreateStream {
 
         kafkaStreamsConfig.startStream(builder, streamConfiguration);
 
-        log.info("Stream started : " + streamName + ", from : " + inputTopic + ", to : " + sendMessageTopic);
+        log.info("Endpoint Stream started : " + streamName + ", from : " + inputTopic + ", to : " + sendMessageTopic);
     }
 
 }

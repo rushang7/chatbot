@@ -56,8 +56,6 @@ public class LoginService {
             loginObjectNode.set("refreshToken", loginObject.get("refresh_token"));
             loginObjectNode.set("userInfo", loginObject.get("UserRequest"));
             loginObjectNode.set("expiresIn", loginObject.get("expires_in"));
-
-            log.info("Login Object : " + loginObjectNode.toString() );
         }
 
         return loginObjectNode;
