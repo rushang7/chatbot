@@ -22,11 +22,12 @@ public class Validator {
             return false;
 
         if(config.get("validationRequired") != null && config.get("validationRequired").asText().equalsIgnoreCase("true")) {
-            String validatorType = config.get("validatorType").asText();
-            if (validatorType.equalsIgnoreCase("FixedSetValues"))
-                return fixedSetValueValidator.isValid(config, chatNode);
+            if (config.get("validatorType") != null) {
+                String validatorType = config.get("validatorType").asText();
+                if (validatorType.equalsIgnoreCase("FixedSetValues"))
+                    return fixedSetValueValidator.isValid(config, chatNode);
+            }
         }
-
         return true;
     }
 
