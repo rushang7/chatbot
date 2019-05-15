@@ -36,7 +36,7 @@ public class PGRComplaintCreate implements RestEndpoint {
     @Value("${egov.external.host}")
     private String egovExternalHost;
 
-    @Value("${location.service.search.path}")
+    @Value("${location.service.host}")
     private String locationServiceHost;
     @Value("${location.service.search.path}")
     private String locationServiceSearchPath;
