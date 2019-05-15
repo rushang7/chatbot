@@ -3,7 +3,6 @@ package org.egov.chat.pre.authorization;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
 import lombok.extern.slf4j.Slf4j;
 import org.egov.chat.config.ApplicationProperties;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,10 +22,6 @@ public class LoginService {
     @Autowired
     private ApplicationProperties applicationProperties;
 
-    private String userServiceLoginEndpoint = "/user/oauth/token" ;
-
-    private String hardcodedPassword = "123456";
-
     @Autowired
     private RestTemplate restTemplate;
     @Autowired
@@ -41,9 +36,8 @@ public class LoginService {
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(formData, headers);
 
-        ResponseEntity<JsonNode> loginResponse =
-                restTemplate.postForEntity(applicationProperties.getEgovHost() + userServiceLoginEndpoint,
-                request, JsonNode.class);
+        ResponseEntity<JsonNode> loginResponse = restTemplate.postForEntity(applicationProperties.getUserServiceHost()
+                        + applicationProperties.getUserServiceOAuthPath(), request, JsonNode.class);
 
         ObjectNode loginObjectNode = objectMapper.createObjectNode();
 
@@ -72,7 +66,7 @@ public class LoginService {
         MultiValueMap<String, String> defaultFormData = new LinkedMultiValueMap<>();
 
         defaultFormData.add("grant_type", "password");
-        defaultFormData.add("password", hardcodedPassword);
+        defaultFormData.add("password", applicationProperties.getHardcodedPassword());
         defaultFormData.add("userType", "CITIZEN");
 
         return defaultFormData;

@@ -11,6 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.egov.chat.config.ApplicationProperties;
 import org.egov.chat.service.restendpoint.RestEndpoint;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -22,6 +24,7 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
+@PropertySource("classpath:xternal.properties")
 @Slf4j
 @Component
 public class PGRComplaintCreate implements RestEndpoint {
@@ -30,20 +33,20 @@ public class PGRComplaintCreate implements RestEndpoint {
     private RestTemplate restTemplate;
     private ObjectMapper mapper = new ObjectMapper(new JsonFactory());
 
-    @Autowired
-    private ApplicationProperties applicationProperties;
+    @Value("${egov.external.host}")
+    private String egovExternalHost;
 
+    @Value("${location.service.search.path}")
+    private String locationServiceHost;
+    @Value("${location.service.search.path}")
+    private String locationServiceSearchPath;
 
-    private String pgrCreateComplaintUrl;
-    private String locationServiceUrl;
+    @Value("${pgr.service.host}")
+    private String pgrHost;
+    @Value("${pgr.service.create.path}")
+    private String pgrCreateComplaintPath;
 
     String pgrCreateRequestBody = "{\"RequestInfo\":{\"authToken\":\"\"},\"actionInfo\":[{\"media\":[]}],\"services\":[{\"addressDetail\":{\"city\":\"\",\"mohalla\":\"\"},\"city\":\"\",\"mohalla\":\"\",\"phone\":\"\",\"serviceCode\":\"\",\"source\":\"web\",\"tenantId\":\"\"}]}";
-
-    @PostConstruct
-    public void init() {
-        pgrCreateComplaintUrl = applicationProperties.getEgovHost() + "/rainmaker-pgr/v1/requests/_create";
-        locationServiceUrl = applicationProperties.getEgovHost() + "/egov-location/location/v11/boundarys/_search";
-    }
 
     @Override
     public String messageForRestCall(ObjectNode params) {
@@ -80,7 +83,8 @@ public class PGRComplaintCreate implements RestEndpoint {
         }
 
         try {
-            ResponseEntity<ObjectNode> response = restTemplate.postForEntity(pgrCreateComplaintUrl, requestObject, ObjectNode.class);
+            ResponseEntity<ObjectNode> response = restTemplate.postForEntity(pgrHost + pgrCreateComplaintPath,
+                    requestObject, ObjectNode.class);
             return makeMessageForResponse(response, refreshToken);
         } catch (Exception e) {
             return "Error occurred";
@@ -92,10 +96,10 @@ public class PGRComplaintCreate implements RestEndpoint {
             ObjectNode pgrResponse = responseEntity.getBody();
             String serviceRequestId = pgrResponse.get("services").get(0).get("serviceRequestId").asText();
             String encodedPath = URLEncoder.encode( serviceRequestId, "UTF-8" );
-            String url = applicationProperties.getEgovHost() + "/citizen/complaint-details/" + encodedPath;
+            String url = egovExternalHost + "/citizen/complaint-details/" + encodedPath;
             url += "?token=" + token;
 
-            String message = "Complain registered successfully. You can see your complain at : ";
+            String message = "Complaint registered successfully. You can view your complaint at : ";
             message += url;
 
             return message;
@@ -116,7 +120,7 @@ public class PGRComplaintCreate implements RestEndpoint {
             put("boundaryType", "Locality");
         }};
 
-        UriComponentsBuilder uriComponents = UriComponentsBuilder.fromUriString(locationServiceUrl);
+        UriComponentsBuilder uriComponents = UriComponentsBuilder.fromUriString(locationServiceHost + locationServiceSearchPath);
         defaultQueryParams.forEach((key, value) -> uriComponents.queryParam(key, value));
         uriComponents.queryParam("tenantId", tenantId);
 

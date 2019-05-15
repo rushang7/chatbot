@@ -13,7 +13,16 @@ public class ApplicationProperties {
     @Value("${kafka.bootstrap.server}")
     private String kafkaHost;
 
-    @Value("${egov.host.server}")
-    private String egovHost;
+    @Value("${egov.external.host}")
+    private String egovExternalHost;
+
+    @Value("${user.service.host}")
+    private String userServiceHost;
+
+    @Value("${user.service.oauth.path}")
+    private String userServiceOAuthPath;
+
+    @Value("${user.service.citizen.passwrord}")
+    private String hardcodedPassword;
 
 }

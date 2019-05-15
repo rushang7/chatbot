@@ -10,6 +10,8 @@ import com.jayway.jsonpath.JsonPath;
 import org.egov.chat.config.ApplicationProperties;
 import org.egov.chat.service.valuefetch.ExternalValueFetcher;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -21,15 +23,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@PropertySource("classpath:xternal.properties")
 @Component
 public class LocalityValueFetcher implements ExternalValueFetcher {
 
     @Autowired
     private RestTemplate restTemplate;
-    @Autowired
-    private ApplicationProperties applicationProperties;
 
-    private String locationServiceUrl;
+    @Value("${location.service.host}")
+    private String locationServiceHost;
+    @Value("${location.service.search.path}")
+    private String locationServiceSearchPath;
 
     private Map<String, String> defaultQueryParams = new HashMap<String, String>() {{
         put("hierarchyTypeCode","ADMIN");
@@ -38,17 +42,12 @@ public class LocalityValueFetcher implements ExternalValueFetcher {
 
     private String requestBodyString = "{\"RequestInfo\":{\"authToken\":\"\"}}";
 
-    @PostConstruct
-    public void init() {
-        locationServiceUrl = applicationProperties.getEgovHost() + "/egov-location/location/v11/boundarys/_search";
-    }
-
     @Override
     public List<String> getValues(ObjectNode params) {
         String tenantId = params.get("tenantId").asText();
         String authToken = params.get("authToken").asText();
 
-        UriComponentsBuilder uriComponents = UriComponentsBuilder.fromUriString(locationServiceUrl);
+        UriComponentsBuilder uriComponents = UriComponentsBuilder.fromUriString(locationServiceHost + locationServiceSearchPath);
         defaultQueryParams.forEach((key, value) -> uriComponents.queryParam(key, value));
         uriComponents.queryParam("tenantId", tenantId);
 

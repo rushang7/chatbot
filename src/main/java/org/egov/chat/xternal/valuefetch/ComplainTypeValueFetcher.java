@@ -8,29 +8,28 @@ import org.egov.chat.service.valuefetch.ExternalValueFetcher;
 import org.egov.common.contract.request.RequestInfo;
 import org.egov.mdms.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
 
+@PropertySource("classpath:xternal.properties")
 @Component
 public class ComplainTypeValueFetcher implements ExternalValueFetcher {
 
     @Autowired
     private RestTemplate restTemplate;
-    @Autowired
-    private ApplicationProperties applicationProperties;
 
     private String moduleName = "RAINMAKER-PGR";
     private String masterDetailsName = "ServiceDefs";
 
-    private String mdmsURL;
-
-    @PostConstruct
-    public void init() {
-        mdmsURL = applicationProperties.getEgovHost() + "/egov-mdms-service/v1/_search";
-    }
+    @Value("${mdms.service.host}")
+    private String mdmsHost;
+    @Value("${mdms.service.search.path}")
+    private String mdmsSearchPath;
 
     @Override
     public List<String> getValues(ObjectNode params) {
@@ -43,10 +42,7 @@ public class ComplainTypeValueFetcher implements ExternalValueFetcher {
                 MdmsCriteria.builder().tenantId(tenantIdArg).moduleDetails(Collections.singletonList(moduleDetail)).build();
         MdmsCriteriaReq mdmsCriteriaReq = MdmsCriteriaReq.builder().mdmsCriteria(mdmsCriteria).requestInfo(RequestInfo.builder().build()) .build();
 
-//        MdmsClientService mdmsClientService = new MdmsClientService();
-//        MdmsResponse mdmsResponse = mdmsClientService.getMaster(mdmsCriteriaReq);
-
-        MdmsResponse mdmsResponse = restTemplate.postForObject(mdmsURL, mdmsCriteriaReq, MdmsResponse.class);
+        MdmsResponse mdmsResponse = restTemplate.postForObject(mdmsHost + mdmsSearchPath, mdmsCriteriaReq, MdmsResponse.class);
 
         Map<String, Map<String, JSONArray>> mdmsRes = mdmsResponse.getMdmsRes();
 

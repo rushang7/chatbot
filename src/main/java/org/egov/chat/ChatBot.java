@@ -10,7 +10,7 @@ import org.springframework.context.annotation.ComponentScan;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 
-@ComponentScan(basePackages = { "org.egov.chat" , "org.egov.chat.config"})
+@ComponentScan(basePackages = { "org.egov.chat" })
 @SpringBootApplication
 public class ChatBot {
 
