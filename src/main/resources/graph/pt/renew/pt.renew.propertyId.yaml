@@ -1,7 +1,7 @@
 name : pt.renew.propertyId
 nodeType : step
 
-dataType : text
+type : text
 
 description : "Existing Property Id"
 message : "Please enter your existing property id"

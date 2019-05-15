@@ -4,7 +4,7 @@ message : " Hi,\n What would you like to do :"
 validationRequired: true
 validatorType: FixedSetValues
 
-values : [ "File a complaint", "Renew Property tax" ]
+values : [ "File a complaint" ]
 displayValuesAsOptions : true
 fuzzyMatch : 70
 
