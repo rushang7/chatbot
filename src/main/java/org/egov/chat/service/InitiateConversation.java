@@ -57,6 +57,8 @@ public class InitiateConversation {
         }).to(outputTopic, Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));
 
         kafkaStreamsConfig.startStream(builder, streamConfiguration);
+
+        log.info(streamName + " stream started");
     }
 
     public JsonNode createOrContinueConversation(JsonNode chatNode) {

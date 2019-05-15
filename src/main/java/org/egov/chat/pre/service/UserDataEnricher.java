@@ -41,6 +41,7 @@ public class UserDataEnricher {
         messagesKStream.mapValues(chatNode -> {
             try {
                 userService.addLoggedInUser(chatNode);
+                log.info("Added userInfo");
                 return chatNode;
             } catch (Exception e) {
                 log.error("Login error : " + e.getMessage());
@@ -49,6 +50,8 @@ public class UserDataEnricher {
         }).to(outputTopic, Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));
 
         kafkaStreamsConfig.startStream(builder, streamConfiguration);
+
+        log.info("User Data enrich stream started");
     }
 
 

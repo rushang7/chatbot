@@ -63,6 +63,8 @@ public class ResetCheck {
         }).to(resetTopic, Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));
 
         kafkaStreamsConfig.startStream(builder, streamConfiguration);
+
+        log.info(streamName + " stream started");
     }
 
     private boolean isResetKeyword(JsonNode chatNode) {
