@@ -3,6 +3,8 @@ package org.egov.chat.post.formatter.karix;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -10,12 +12,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+@PropertySource("classpath:application.properties")
 @Slf4j
 @Service
 public class KarixRestCall {
 
     String karixEndpoint = "https://rcmapisandbox.instaalerts.zone/services/rcm/sendMessage";
-    String karixAuthorizationKey = "Bearer s6iyrz5y8rPApBQ2gQ3oog==";
+
+    @Value("karix.authentication.key")
+    String karixAuthorizationKey;
 
     @Autowired
     private RestTemplate restTemplate;
