@@ -19,10 +19,12 @@ public class UserService {
     private ObjectMapper objectMapper;
     @Autowired
     private LoginService loginService;
+    @Autowired
+    private CreateNewUserService createNewUserService;
 
     private Long authTokenExtraValidityThreshold = 600000L;              // 10 minutes
 
-    public JsonNode addLoggedInUser(JsonNode chatNode) {
+    public JsonNode addLoggedInUser(JsonNode chatNode) throws Exception {
         String tenantId = chatNode.at(JsonPointerNameConstants.tenantId).asText();
         String mobileNumber = chatNode.at(JsonPointerNameConstants.mobileNumber).asText();
 
@@ -32,13 +34,13 @@ public class UserService {
         return chatNode;
     }
 
-    User getUser(String mobileNumber, String tenantId) {
+    User getUser(String mobileNumber, String tenantId) throws Exception {
         User user = loginOrCreateUser(mobileNumber, tenantId);
 
         return user;
     }
 
-    User loginOrCreateUser(String mobileNumber, String tenantId) {
+    User loginOrCreateUser(String mobileNumber, String tenantId) throws Exception {
         User user = User.builder().mobileNumber(mobileNumber).userId(getUserNewId(mobileNumber, tenantId)).build();
         try {
             JsonNode loginUserObject = loginUser(mobileNumber, tenantId);
@@ -71,8 +73,8 @@ public class UserService {
         return loginService.getLoggedInUser(mobileNumber, tenantId);
     }
 
-    JsonNode createUserForSystem(String mobileNumber, String tenantId) {
-        return null;
+    JsonNode createUserForSystem(String mobileNumber, String tenantId) throws Exception {
+        return createNewUserService.createNewUser(mobileNumber, tenantId);
     }
 
     JsonNode addUserDataToChatNode(User user, JsonNode chatNode) {

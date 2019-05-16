@@ -22,6 +22,9 @@ public class ApplicationProperties {
     @Value("${user.service.oauth.path}")
     private String userServiceOAuthPath;
 
+    @Value("${user.service.create.citizen.path}")
+    private String citizenCreatePath;
+
     @Value("${user.service.citizen.passwrord}")
     private String hardcodedPassword;
 
