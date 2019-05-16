@@ -17,10 +17,11 @@ import org.springframework.web.client.RestTemplate;
 @Service
 public class KarixRestCall {
 
-    String karixEndpoint = "https://rcmapisandbox.instaalerts.zone/services/rcm/sendMessage";
+    @Value("${karix.send.message.url}")
+    private String karixSendMessageUrl;
 
-    @Value("karix.authentication.key")
-    String karixAuthorizationKey;
+    @Value("${karix.authentication.token}")
+    private String karixAuthenticationToken;
 
     @Autowired
     private RestTemplate restTemplate;
@@ -31,7 +32,7 @@ public class KarixRestCall {
 
             HttpEntity<JsonNode> request = new HttpEntity<>(response, httpHeaders);
 
-            ResponseEntity<JsonNode> karixResponse = restTemplate.postForEntity(karixEndpoint, request, JsonNode.class);
+            ResponseEntity<JsonNode> karixResponse = restTemplate.postForEntity(karixSendMessageUrl, request, JsonNode.class);
 
             log.info("Karix Send Message Response : " + karixResponse.toString());
         } catch (Exception e) {
@@ -43,7 +44,8 @@ public class KarixRestCall {
     HttpHeaders getDefaultHttpHeaders() {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Authentication", karixAuthorizationKey);
+        headers.set("Authentication", karixAuthenticationToken);
+        log.info("Karix Authentication Key : " + karixAuthenticationToken);
         return headers;
     }
 
