@@ -45,7 +45,6 @@ public class KarixRestCall {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Authentication", karixAuthenticationToken);
-        log.info("Karix Authentication Key : " + karixAuthenticationToken);
         return headers;
     }
 
