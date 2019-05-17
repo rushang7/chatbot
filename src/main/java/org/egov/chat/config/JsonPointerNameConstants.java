@@ -4,7 +4,7 @@ public class JsonPointerNameConstants {
 
     public static final String tenantId = "/tenantId";
 
-    public static final String userId = "/user/mobileNumber";
+    public static final String userId = "/user/userId";
 
     public static final String mobileNumber = "/user/mobileNumber";
 

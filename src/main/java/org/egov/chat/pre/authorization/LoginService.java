@@ -44,8 +44,6 @@ public class LoginService {
         if(loginResponse.getStatusCode().is2xxSuccessful()) {
             JsonNode loginObject = loginResponse.getBody();
 
-            log.info("Login Response : " + loginObject.asText() );
-
             loginObjectNode.set("authToken" , loginObject.get("access_token"));
             loginObjectNode.set("refreshToken", loginObject.get("refresh_token"));
             loginObjectNode.set("userInfo", loginObject.get("UserRequest"));
