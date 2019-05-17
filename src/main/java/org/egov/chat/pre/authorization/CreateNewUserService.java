@@ -3,12 +3,14 @@ package org.egov.chat.pre.authorization;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.extern.slf4j.Slf4j;
 import org.egov.chat.config.ApplicationProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+@Slf4j
 @Service
 public class CreateNewUserService {
 
@@ -19,8 +21,6 @@ public class CreateNewUserService {
     private RestTemplate restTemplate;
     @Autowired
     private ObjectMapper objectMapper;
-
-    private String requestBodyString = "{\"RequestInfo\":{},\"User\":{\"otpReference\":\"\",\"permanentCity\":\"\",\"tenantId\":\"\",\"username\":\"\"}}";
 
     public JsonNode createNewUser(String mobileNumber, String tenantId) throws Exception {
 

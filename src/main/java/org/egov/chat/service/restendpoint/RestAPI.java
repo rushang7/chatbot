@@ -29,7 +29,7 @@ public class RestAPI {
     private MessageRepository messageRepository;
 
 
-    public String makeRestEndpointCall(JsonNode config, JsonNode chatNode) {
+    public String makeRestEndpointCall(JsonNode config, JsonNode chatNode) throws Exception {
 
         String restClassName = config.get("class").asText();
 
@@ -48,10 +48,10 @@ public class RestAPI {
 
         List<Message> messageList = messageRepository.getMessagesOfConversation(conversationId);
 
-        ArrayNode paramConfig = (ArrayNode) config.get("nodes");
+        ArrayNode nodeConfigs = (ArrayNode) config.get("nodes");
 
-        for(JsonNode param : paramConfig) {
-            String nodeId = param.asText();
+        for(JsonNode node : nodeConfigs) {
+            String nodeId = node.asText();
             Optional<Message> message =
                     messageList.stream().filter(message1 -> message1.getNodeId().equalsIgnoreCase(nodeId)).findFirst();
             if(message.isPresent())

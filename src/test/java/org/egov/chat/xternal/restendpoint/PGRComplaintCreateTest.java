@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import com.jayway.jsonpath.DocumentContext;
+import com.jayway.jsonpath.JsonPath;
 import lombok.extern.slf4j.Slf4j;
 import org.egov.chat.models.Message;
 import org.junit.Test;
@@ -18,25 +20,39 @@ public class PGRComplaintCreateTest {
 
     @Test
     public void test() throws IOException {
-        List<Message> messageList = new ArrayList<>();
+//        List<Message> messageList = new ArrayList<>();
+//
+//        messageList.add(Message.builder().nodeId("type").messageContent("1").build());
+//        messageList.add(Message.builder().nodeId("address").messageContent("my address").build());
+//
+//        Optional<Message> message = messageList.stream().filter(message1 -> message1.getNodeId() == "type").findFirst();
+//
+//        System.out.println(message.get().getMessageContent());
+//
+//        ObjectMapper mapper = new ObjectMapper(new JsonFactory());
+//        ObjectNode objectNode = mapper.createObjectNode();
+//
+//        objectNode.set("asd", TextNode.valueOf("qwe"));
+//
+//        log.info(String.valueOf(objectNode.at("/asd")));
+//
+//        log.info(objectNode.toString());
 
-        messageList.add(Message.builder().nodeId("type").messageContent("1").build());
-        messageList.add(Message.builder().nodeId("address").messageContent("my address").build());
+        ObjectMapper objectMapper = new ObjectMapper(new JsonFactory());
 
-        Optional<Message> message = messageList.stream().filter(message1 -> message1.getNodeId() == "type").findFirst();
+        String pgrCreateRequestBody = "{\"RequestInfo\":{\"authToken\":\"\"},\"actionInfo\":[{\"media\":[]}],\"services\":[{\"addressDetail\":{\"city\":\"\",\"mohalla\":\"\"},\"city\":\"\",\"mohalla\":\"\",\"phone\":\"\",\"serviceCode\":\"\",\"source\":\"web\",\"tenantId\":\"\"}]}";
 
-        System.out.println(message.get().getMessageContent());
+        DocumentContext request = JsonPath.parse(pgrCreateRequestBody);
 
-        ObjectMapper mapper = new ObjectMapper(new JsonFactory());
-        ObjectNode objectNode = mapper.createObjectNode();
+        DocumentContext requestInfo = JsonPath.parse( "{\n" +
+                "    \"authToken\": \"986cbf03-1ee0-4346-8e29-e634812579f1\"\n" +
+                "  }");
 
-        objectNode.set("asd", TextNode.valueOf("qwe"));
+        log.info("RequestInfo : " + requestInfo.jsonString());
 
-        log.info(String.valueOf(objectNode.at("/asd")));
+        request.set("$.RequestInfo",  requestInfo.json());
 
-        log.info(objectNode.toString());
-
-
+        log.info(request.jsonString());
     }
 
 }

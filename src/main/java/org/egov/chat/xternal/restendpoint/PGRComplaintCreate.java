@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import lombok.extern.slf4j.Slf4j;
-import org.egov.chat.config.ApplicationProperties;
 import org.egov.chat.service.restendpoint.RestEndpoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,7 +17,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.HashMap;
@@ -31,7 +29,8 @@ public class PGRComplaintCreate implements RestEndpoint {
 
     @Autowired
     private RestTemplate restTemplate;
-    private ObjectMapper mapper = new ObjectMapper(new JsonFactory());
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Value("${egov.external.host}")
     private String egovExternalHost;
@@ -49,7 +48,7 @@ public class PGRComplaintCreate implements RestEndpoint {
     String pgrCreateRequestBody = "{\"RequestInfo\":{\"authToken\":\"\"},\"actionInfo\":[{\"media\":[]}],\"services\":[{\"addressDetail\":{\"city\":\"\",\"mohalla\":\"\"},\"city\":\"\",\"mohalla\":\"\",\"phone\":\"\",\"serviceCode\":\"\",\"source\":\"web\",\"tenantId\":\"\"}]}";
 
     @Override
-    public String messageForRestCall(ObjectNode params) {
+    public String messageForRestCall(ObjectNode params) throws Exception {
         String authToken = params.get("authToken").asText();
         String refreshToken = params.get("refreshToken").asText();
         String tenantId = params.get("tenantId").asText();
@@ -58,12 +57,12 @@ public class PGRComplaintCreate implements RestEndpoint {
         String locality = params.get("pgr.create.locality").asText();
         String complaintDetails = params.get("pgr.create.complaintDetails").asText();
         String address = params.get("pgr.create.address").asText();
-        DocumentContext userInfo = JsonPath.parse(params.get("userInfo").toString());
+        DocumentContext userInfo = JsonPath.parse(params.get("userInfo").asText());
 
         DocumentContext request = JsonPath.parse(pgrCreateRequestBody);
 
         request.set("$.RequestInfo.authToken", authToken);
-        request.set("$.RequestInfo.userInfo", userInfo);
+        request.set("$.RequestInfo.userInfo",  userInfo.json());
         request.set("$.services.[0].addressDetail.city", tenantId);
         request.set("$.services.[0].city", tenantId);
         request.set("$.services.[0].tenantId", tenantId);
@@ -77,7 +76,7 @@ public class PGRComplaintCreate implements RestEndpoint {
 
         JsonNode requestObject = null;
         try {
-            requestObject = mapper.readTree(request.jsonString());
+            requestObject = objectMapper.readTree(request.jsonString());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -87,7 +86,7 @@ public class PGRComplaintCreate implements RestEndpoint {
                     requestObject, ObjectNode.class);
             return makeMessageForResponse(response, refreshToken);
         } catch (Exception e) {
-            return "Error occurred";
+            return "Error occurred while creating complaint";
         }
     }
 
