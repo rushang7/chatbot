@@ -45,7 +45,7 @@ public class PGRComplaintCreate implements RestEndpoint {
     @Value("${pgr.service.create.path}")
     private String pgrCreateComplaintPath;
 
-    String pgrCreateRequestBody = "{\"RequestInfo\":{\"authToken\":\"\"},\"actionInfo\":[{\"media\":[]}],\"services\":[{\"addressDetail\":{\"city\":\"\",\"mohalla\":\"\"},\"city\":\"\",\"mohalla\":\"\",\"phone\":\"\",\"serviceCode\":\"\",\"source\":\"web\",\"tenantId\":\"\"}]}";
+    String pgrCreateRequestBody = "{\"RequestInfo\":{\"authToken\":\"\", \"userInfo\": {}},\"actionInfo\":[{\"media\":[]}],\"services\":[{\"addressDetail\":{\"city\":\"\",\"mohalla\":\"\"},\"city\":\"\",\"mohalla\":\"\",\"phone\":\"\",\"serviceCode\":\"\",\"source\":\"web\",\"tenantId\":\"\"}]}";
 
     @Override
     public String messageForRestCall(ObjectNode params) throws Exception {
