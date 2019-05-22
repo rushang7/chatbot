@@ -40,6 +40,7 @@ public class KarixResponseFormatter implements ResponseFormatter {
     public JsonNode getTransformedResponse(JsonNode response) {
         DocumentContext request = JsonPath.parse(karixRequestBody);
 
+        request.set("$.message.content.type", response.at(KarixJsonPointerConstants.responseType).asText());
         request.set("$.message.content.text", response.at(KarixJsonPointerConstants.responseText).asText());
         request.set("$.message.recipient.to", "91" + response.at(KarixJsonPointerConstants.toMobileNumber).asText());
         request.set("$.message.sender.from", response.at(KarixJsonPointerConstants.fromMobileNumber).asText());

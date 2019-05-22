@@ -48,7 +48,7 @@ public class PGRComplaintCreate implements RestEndpoint {
     String pgrCreateRequestBody = "{\"RequestInfo\":{\"authToken\":\"\", \"userInfo\": {}},\"actionInfo\":[{\"media\":[]}],\"services\":[{\"addressDetail\":{\"city\":\"\",\"mohalla\":\"\"},\"city\":\"\",\"mohalla\":\"\",\"phone\":\"\",\"serviceCode\":\"\",\"source\":\"web\",\"tenantId\":\"\"}]}";
 
     @Override
-    public String messageForRestCall(ObjectNode params) throws Exception {
+    public ObjectNode messageForRestCall(ObjectNode params) throws Exception {
         String authToken = params.get("authToken").asText();
         String refreshToken = params.get("refreshToken").asText();
         String tenantId = params.get("tenantId").asText();
@@ -81,16 +81,22 @@ public class PGRComplaintCreate implements RestEndpoint {
             e.printStackTrace();
         }
 
+        ObjectNode responseMessage = objectMapper.createObjectNode();
+        responseMessage.put("type", "text");
         try {
             ResponseEntity<ObjectNode> response = restTemplate.postForEntity(pgrHost + pgrCreateComplaintPath,
                     requestObject, ObjectNode.class);
-            return makeMessageForResponse(response, refreshToken);
+            responseMessage = makeMessageForResponse(response, refreshToken);
         } catch (Exception e) {
-            return "Error occurred while creating complaint";
+            responseMessage.put("text", "Error occured");
         }
+        return responseMessage;
     }
 
-    private String makeMessageForResponse(ResponseEntity<ObjectNode> responseEntity, String token) throws Exception {
+    private ObjectNode makeMessageForResponse(ResponseEntity<ObjectNode> responseEntity, String token) throws Exception {
+        ObjectNode responseMessage = objectMapper.createObjectNode();
+        responseMessage.put("type", "text");
+
         if(responseEntity.getStatusCode().is2xxSuccessful()) {
             ObjectNode pgrResponse = responseEntity.getBody();
             String serviceRequestId = pgrResponse.get("services").get(0).get("serviceRequestId").asText();
@@ -101,10 +107,11 @@ public class PGRComplaintCreate implements RestEndpoint {
             String message = "Complaint registered successfully. You can view your complaint at : ";
             message += url;
 
-            return message;
+            responseMessage.put("text", message);
         } else {
-            throw new Exception("Error occured");
+            responseMessage.put("text", "Error Occured");
         }
+        return responseMessage;
     }
 
     private String getMohallaCode(String tenantId, String locality, String authToken) {

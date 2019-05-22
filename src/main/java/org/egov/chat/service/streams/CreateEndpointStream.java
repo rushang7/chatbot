@@ -45,9 +45,9 @@ public class CreateEndpointStream extends CreateStream {
 
         answerKStream.mapValues(chatNode -> {
             try {
-                String responseMessage = restAPI.makeRestEndpointCall(config, chatNode);
+                ObjectNode responseMessage = restAPI.makeRestEndpointCall(config, chatNode);
 
-                chatNode = ((ObjectNode) chatNode).set("question", TextNode.valueOf(responseMessage));
+                chatNode = ((ObjectNode) chatNode).set("response", responseMessage);
 
                 String conversationId = chatNode.at(JsonPointerNameConstants.conversationId).asText();
                 conversationStateRepository.markConversationInactive(conversationId);

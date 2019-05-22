@@ -29,7 +29,7 @@ public class RestAPI {
     private MessageRepository messageRepository;
 
 
-    public String makeRestEndpointCall(JsonNode config, JsonNode chatNode) throws Exception {
+    public ObjectNode makeRestEndpointCall(JsonNode config, JsonNode chatNode) throws Exception {
 
         String restClassName = config.get("class").asText();
 

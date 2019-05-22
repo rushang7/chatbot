@@ -1,6 +1,7 @@
 package org.egov.chat.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +16,8 @@ import java.util.List;
 public class QuestionGenerator {
 
     @Autowired
+    private ObjectMapper objectMapper;
+    @Autowired
     private ValueFetcher valueFetcher;
 
     public JsonNode getQuestion(JsonNode config, JsonNode chatNode) {
@@ -23,7 +26,11 @@ public class QuestionGenerator {
         String question = getQuesitonForConfig(config);
         question += getOptionsForConfig(config, chatNode);
 
-        nodeWithQuestion.set("question", TextNode.valueOf(question));
+        ObjectNode response = objectMapper.createObjectNode();
+        response.put("type", "text");
+        response.put("text", question);
+
+        nodeWithQuestion.set("response", response);
         return nodeWithQuestion;
     }
 
