@@ -8,6 +8,6 @@ public class KarixJsonPointerConstants {
 
     public static final String toMobileNumber = "/user/mobileNumber";
 
-    public static final String fromMobileNumber = "/recipient/to";
+    public static final String tenantId = "/tenantId";
 
 }

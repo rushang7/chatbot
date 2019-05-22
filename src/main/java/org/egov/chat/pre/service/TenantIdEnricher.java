@@ -11,6 +11,7 @@ import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
 import org.egov.chat.config.ApplicationProperties;
 import org.egov.chat.config.KafkaStreamsConfig;
+import org.egov.chat.config.TenantIdWhatsAppNumberMapping;
 import org.egov.chat.pre.authorization.UserService;
 import org.egov.chat.pre.config.JsonPointerNameConstants;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,17 +30,9 @@ public class TenantIdEnricher {
     private ApplicationProperties applicationProperties;
     @Autowired
     private KafkaStreamsConfig kafkaStreamsConfig;
+
     @Autowired
-    private UserService userService;
-
-
-    private Map<String, String> numberToTenantId;
-
-    // TODO : mobileNumber to tenantId mapping
-    public String getTenantIdFor(String recipientNumber) {
-        return "pb.amritsar";
-//        return numberToTenantId.get(recipientNumber);
-    }
+    private TenantIdWhatsAppNumberMapping tenantIdWhatsAppNumberMapping;
 
     public void startTenantEnricherStream(String inputTopic, String outputTopic) {
 
@@ -52,7 +45,7 @@ public class TenantIdEnricher {
         messagesKStream.mapValues(chatNode -> {
             try {
                 String recipientNumber = chatNode.at(JsonPointerNameConstants.recipientNumber).asText();
-                ((ObjectNode) chatNode).put("tenantId", getTenantIdFor(recipientNumber));
+                ((ObjectNode) chatNode).put("tenantId",  tenantIdWhatsAppNumberMapping.getTenantIdForNumber(recipientNumber));
                 return chatNode;
             } catch (Exception e) {
                 log.error(e.getMessage());

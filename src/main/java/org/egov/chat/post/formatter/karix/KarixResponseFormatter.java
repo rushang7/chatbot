@@ -13,6 +13,7 @@ import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
 import org.egov.chat.config.KafkaStreamsConfig;
+import org.egov.chat.config.TenantIdWhatsAppNumberMapping;
 import org.egov.chat.post.formatter.ResponseFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -31,6 +32,9 @@ public class KarixResponseFormatter implements ResponseFormatter {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private TenantIdWhatsAppNumberMapping tenantIdWhatsAppNumberMapping;
+
     @Override
     public String getStreamName() {
         return "karix-response-transform";
@@ -43,7 +47,8 @@ public class KarixResponseFormatter implements ResponseFormatter {
         request.set("$.message.content.type", response.at(KarixJsonPointerConstants.responseType).asText());
         request.set("$.message.content.text", response.at(KarixJsonPointerConstants.responseText).asText());
         request.set("$.message.recipient.to", "91" + response.at(KarixJsonPointerConstants.toMobileNumber).asText());
-        request.set("$.message.sender.from", response.at(KarixJsonPointerConstants.fromMobileNumber).asText());
+        request.set("$.message.sender.from",
+                tenantIdWhatsAppNumberMapping.getNumberForTenantId(response.at(KarixJsonPointerConstants.tenantId).asText()));
 
         JsonNode karixRequest = null;
         try {
