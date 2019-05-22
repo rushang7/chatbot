@@ -14,22 +14,8 @@ import java.io.IOException;
 @SpringBootApplication
 public class ChatBot {
 
-    @Autowired
-    private GraphStreamGenerator graphStreamGenerator;
-    @Autowired
-    private StreamController streamController;
-
-
     public static void main(String args[]) {
-
         SpringApplication.run(ChatBot.class, args);
-
-    }
-
-    @PostConstruct
-    public void run() throws IOException {
-        streamController.generateStreams();
-        graphStreamGenerator.generateGraphStreams();
     }
 
 }
