@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import org.egov.chat.config.JsonPointerNameConstants;
+import org.egov.chat.models.Message;
+import org.egov.chat.repository.MessageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -18,6 +20,9 @@ public class ValueFetcher {
 
     @Autowired
     List<ExternalValueFetcher> externalValueFetchers;
+
+    @Autowired
+    private MessageRepository messageRepository;
 
     public List<String> getAllValidValues(JsonNode config, JsonNode chatNode) {
         List<String> validValues = new ArrayList<>();
@@ -65,6 +70,11 @@ public class ValueFetcher {
 
             if(paramConfiguration.substring(0, 1).equalsIgnoreCase("/")) {
                 paramValue = chatNode.at(paramConfiguration);
+            } else if(paramConfiguration.substring(0, 1).equalsIgnoreCase("~")) {
+                String nodeId = paramConfiguration.substring(1);
+                String conversationId = chatNode.at(JsonPointerNameConstants.conversationId).asText();
+                List<Message> messages = messageRepository.getMessagesOfConversation(conversationId);
+                paramValue = TextNode.valueOf(findMessageForNode(messages, nodeId));
             } else {
                 paramValue = TextNode.valueOf(paramConfiguration);
             }
@@ -79,6 +89,15 @@ public class ValueFetcher {
         for(ExternalValueFetcher externalValueFetcher : externalValueFetchers) {
             if(externalValueFetcher.getClass().getName().equalsIgnoreCase(className))
                 return externalValueFetcher;
+        }
+        return null;
+    }
+
+    String findMessageForNode(List<Message> messages, String nodeId) {
+        for(Message message : messages) {
+            if(message.getNodeId().equalsIgnoreCase(nodeId)){
+                return message.getMessageContent();
+            }
         }
         return null;
     }

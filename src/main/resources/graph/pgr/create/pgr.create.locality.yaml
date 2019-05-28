@@ -19,6 +19,7 @@ values :
   params :
     tenantId : /tenantId
     authToken : /user/authToken
+    complaintType: ~pgr.create.complaintType
 
 displayValuesAsOptions : true
 fuzzyMatch : 90
