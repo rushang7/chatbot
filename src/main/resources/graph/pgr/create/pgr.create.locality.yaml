@@ -17,8 +17,8 @@ question : pgr.create.locality.question
 values :
   class : org.egov.chat.xternal.valuefetch.LocalityValueFetcher
   params :
-    tenantId : ^tenantId
-    authToken : ^authToken
+    tenantId : /tenantId
+    authToken : /user/authToken
 
 displayValuesAsOptions : true
 fuzzyMatch : 90

@@ -13,7 +13,7 @@ message : "What is the type of complaint?"
 values :
   class : org.egov.chat.xternal.valuefetch.ComplainTypeValueFetcher
   params :
-    tenantId : ^tenantId
+    tenantId : /tenantId
 
 displayValuesAsOptions : true
 fuzzyMatch : 90
