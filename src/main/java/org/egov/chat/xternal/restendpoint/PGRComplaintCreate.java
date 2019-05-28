@@ -104,7 +104,8 @@ public class PGRComplaintCreate implements RestEndpoint {
             String url = egovExternalHost + "/citizen/complaint-details/" + encodedPath;
             url += "?token=" + token;
 
-            String message = "Complaint registered successfully. You can view your complaint at : ";
+            String message = "Complaint registered successfully. Complaint Id is : " + serviceRequestId
+                    + "\n You can view your complaint at : ";
             message += url;
 
             responseMessage.put("text", message);
