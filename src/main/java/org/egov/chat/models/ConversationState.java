@@ -1,5 +1,6 @@
 package org.egov.chat.models;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.*;
 
 @Setter
@@ -16,4 +17,6 @@ public class ConversationState {
     private String userId;
 
     private boolean active;
+
+    private JsonNode questionDetails;
 }

@@ -14,7 +14,7 @@ public class ConversationStateRepository {
     private JdbcTemplate jdbcTemplate;
 
     private static final String insertNewConversationQuery = "INSERT INTO eg_chat_conversation_state " +
-            "(conversation_id, active_node_id, user_id, active) VALUES (?, ?, ?, ?)";
+            "(conversation_id, active_node_id, user_id, active, question_details) VALUES (?, ?, ?, ?, ?)";
 
     private static final String updateActiveNodeIdQuery = "UPDATE eg_chat_conversation_state SET active_node_id=? " +
             "WHERE conversation_id=?";
