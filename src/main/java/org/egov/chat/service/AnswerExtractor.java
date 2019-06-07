@@ -24,50 +24,10 @@ public class AnswerExtractor {
             return chatNode;
 
         if(config.get("typeOfValues") != null && config.get("typeOfValues").asText().equalsIgnoreCase("FixedSetValues")) {
-//            chatNode = extractAnswerFromFixedSet(config, chatNode);
             chatNode = fixedSetValues.extractAnswer(config, chatNode);
         }
 
         return chatNode;
-    }
-
-    private JsonNode extractAnswerFromFixedSet(JsonNode config, JsonNode chatNode) {
-        boolean displayValuesAsOptions = config.get("displayValuesAsOptions") != null && config.get("displayValuesAsOptions").asBoolean();
-
-        String answer = chatNode.at(JsonPointerNameConstants.messageContent).asText();
-        List<String> validValues = valueFetcher.getAllValidValues(config, chatNode);
-
-        Integer answerIndex;
-        if(displayValuesAsOptions && checkIfAnswerIsIndex(answer)) {
-            answerIndex = Integer.parseInt(answer) - 1;
-        } else {
-            Integer highestFuzzyScoreMatch = 0;
-            answerIndex = 0;
-            for(int i = 0; i < validValues.size(); i++) {
-                Integer score = FuzzySearch.tokenSetRatio(validValues.get(i), answer);
-                if(score > highestFuzzyScoreMatch) {
-                    highestFuzzyScoreMatch = score;
-                    answerIndex = i;
-                }
-            }
-        }
-
-        String finalAnswer = validValues.get(answerIndex);
-
-        ObjectNode objectNode = (ObjectNode) chatNode;
-        // TODO : jsonpath
-        ( (ObjectNode) objectNode.get("message")).put("content", finalAnswer);
-
-        return objectNode;
-    }
-
-    private boolean checkIfAnswerIsIndex(String answer) {
-        try {
-            Integer.parseInt(answer);
-            return true;
-        } catch (NumberFormatException exception) {
-            return false;
-        }
     }
 
 }

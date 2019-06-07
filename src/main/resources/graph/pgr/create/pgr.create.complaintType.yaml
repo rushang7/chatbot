@@ -17,7 +17,6 @@ values :
     tenantId : /tenantId
 
 displayValuesAsOptions : true
-fuzzyMatch : 90
 
 fuzzyMatchThreshold: 70
 matchAnswerThreshold: 90

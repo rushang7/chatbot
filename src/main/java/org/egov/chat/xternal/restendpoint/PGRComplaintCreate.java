@@ -1,9 +1,7 @@
 package org.egov.chat.xternal.restendpoint;
 
-import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
@@ -15,12 +13,9 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.Map;
 
 @PropertySource("classpath:xternal.properties")
 @Slf4j
@@ -66,7 +61,7 @@ public class PGRComplaintCreate implements RestEndpoint {
         request.set("$.services.[0].addressDetail.city", tenantId);
         request.set("$.services.[0].city", tenantId);
         request.set("$.services.[0].tenantId", tenantId);
-        request.set("$.services.[0].addressDetail.mohalla", getMohallaCode(tenantId, locality, authToken));
+        request.set("$.services.[0].addressDetail.mohalla", locality);
         request.set("$.services.[0].serviceCode", complaintType);
         request.set("$.services.[0].phone", mobileNumber);
         request.set("$.services.[0].description", complaintDetails);
@@ -113,46 +108,6 @@ public class PGRComplaintCreate implements RestEndpoint {
             responseMessage.put("text", "Error Occured");
         }
         return responseMessage;
-    }
-
-    private String getMohallaCode(String tenantId, String locality, String authToken) {
-
-        String requestBodyString = "{\"RequestInfo\":{\"authToken\":\"\"}}";
-
-        DocumentContext request = JsonPath.parse(requestBodyString);
-        request.set("$.RequestInfo.authToken", authToken);
-
-        Map<String, String> defaultQueryParams = new HashMap<String, String>() {{
-            put("hierarchyTypeCode","ADMIN");
-            put("boundaryType", "Locality");
-        }};
-
-        UriComponentsBuilder uriComponents = UriComponentsBuilder.fromUriString(locationServiceHost + locationServiceSearchPath);
-        defaultQueryParams.forEach((key, value) -> uriComponents.queryParam(key, value));
-        uriComponents.queryParam("tenantId", tenantId);
-
-        String url = uriComponents.buildAndExpand().toUriString();
-
-        ObjectMapper mapper = new ObjectMapper(new JsonFactory());
-        ObjectNode requestBody = null;
-        try {
-            requestBody = (ObjectNode) mapper.readTree(request.jsonString());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        ObjectNode locationData = restTemplate.postForObject(url, requestBody, ObjectNode.class);
-
-        ArrayNode boundaryData = (ArrayNode) locationData.get("TenantBoundary").get(0).get("boundary");
-
-        for(JsonNode boundary : boundaryData) {
-            String currentLocalityName = boundary.get("name").asText();
-            if(currentLocalityName.equalsIgnoreCase(locality)) {
-                return boundary.get("code").asText();
-            }
-        }
-
-        return "";
     }
 
 }

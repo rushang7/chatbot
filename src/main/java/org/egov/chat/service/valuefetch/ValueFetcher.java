@@ -37,6 +37,19 @@ public class ValueFetcher {
         return validValues;
     }
 
+    public String getCodeForValue(JsonNode config, JsonNode chatNode, String answer) {
+        if(config.get("values").isArray()) {
+            return answer;
+        } else {
+            String externalValueFetcherClassName = config.get("values").get("class").asText();
+            ExternalValueFetcher externalValueFetcher = getExternalValueFetcher(externalValueFetcherClassName);
+
+            ObjectNode params = createParamsToFetchValues(config, chatNode);
+
+            return externalValueFetcher.getCodeForValue(params, answer);
+        }
+    }
+
     List<String> getValuesFromArrayNode(JsonNode config) {
         List<String> validValues = new ArrayList<>();
         for(JsonNode jsonNode : config.get("values")) {

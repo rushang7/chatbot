@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
-import org.egov.chat.config.ApplicationProperties;
 import org.egov.chat.service.valuefetch.ExternalValueFetcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,7 +15,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -44,6 +42,15 @@ public class LocalityValueFetcher implements ExternalValueFetcher {
 
     @Override
     public List<String> getValues(ObjectNode params) {
+        return extractLocalities(fetchValues(params));
+    }
+
+    @Override
+    public String getCodeForValue(ObjectNode params, String value) {
+        return getMohallaCode(fetchValues(params), value);
+    }
+
+    private ObjectNode fetchValues(ObjectNode params) {
         String tenantId = params.get("tenantId").asText();
         String authToken = params.get("authToken").asText();
 
@@ -59,14 +66,14 @@ public class LocalityValueFetcher implements ExternalValueFetcher {
         ObjectMapper mapper = new ObjectMapper(new JsonFactory());
         ObjectNode requestBody = null;
         try {
-             requestBody = (ObjectNode) mapper.readTree(request.jsonString());
+            requestBody = (ObjectNode) mapper.readTree(request.jsonString());
         } catch (IOException e) {
             e.printStackTrace();
         }
 
         ObjectNode locationData = restTemplate.postForObject(url, requestBody, ObjectNode.class);
 
-        return extractLocalities(locationData);
+        return locationData;
     }
 
     List<String> extractLocalities(ObjectNode locationData) {
@@ -79,6 +86,20 @@ public class LocalityValueFetcher implements ExternalValueFetcher {
         }
 
         return localities;
+    }
+
+    private String getMohallaCode(ObjectNode locationData, String locality) {
+
+        ArrayNode boundaryData = (ArrayNode) locationData.get("TenantBoundary").get(0).get("boundary");
+
+        for(JsonNode boundary : boundaryData) {
+            String currentLocalityName = boundary.get("name").asText();
+            if(currentLocalityName.equalsIgnoreCase(locality)) {
+                return boundary.get("code").asText();
+            }
+        }
+
+        return "";
     }
 
 

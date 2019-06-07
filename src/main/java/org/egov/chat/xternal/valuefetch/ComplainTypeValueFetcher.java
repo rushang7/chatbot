@@ -53,6 +53,11 @@ public class ComplainTypeValueFetcher implements ExternalValueFetcher {
         return values;
     }
 
+    @Override
+    public String getCodeForValue(ObjectNode params, String value) {
+        return value;
+    }
+
     List<String> getActiveComplaintTypes(JSONArray mdmsResValues) {
         List<String> values = new ArrayList<>();
 

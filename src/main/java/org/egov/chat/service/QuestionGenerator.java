@@ -47,7 +47,13 @@ public class QuestionGenerator {
         String options = "";
 
         if(config.get("typeOfValues") != null && config.get("typeOfValues").asText().equalsIgnoreCase("FixedSetValues")) {
-            if(config.get("displayValuesAsOptions") != null && config.get("displayValuesAsOptions").asText().equalsIgnoreCase("true")) {
+
+            if(config.get("displayValuesAsOptions") != null && config.get("displayValuesAsOptions").asText().equalsIgnoreCase("false")) {
+
+                JsonNode questionDetails = fixedSetValues.getAllValidValues(config, chatNode);
+                ( (ObjectNode) chatNode).set("questionDetails", questionDetails);
+
+            } else if(config.get("displayValuesAsOptions") != null && config.get("displayValuesAsOptions").asText().equalsIgnoreCase("true")) {
 
                 boolean reQuestion = chatNode.get("reQuestion") != null && chatNode.get("reQuestion").asBoolean();
                 JsonNode questionDetails;

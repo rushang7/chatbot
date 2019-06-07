@@ -7,6 +7,7 @@ type : text
 
 validationRequired : true
 typeOfValues : FixedSetValues
+displayValuesAsOptions : true
 
 message : "What is the locality?"
 
@@ -17,5 +18,5 @@ values :
     tenantId : /tenantId
     authToken : /user/authToken
 
-displayValuesAsOptions : true
+fuzzyMatchThreshold: 70
 matchAnswerThreshold: 90

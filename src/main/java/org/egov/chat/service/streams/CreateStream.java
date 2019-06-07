@@ -42,7 +42,7 @@ public class CreateStream {
                 kafkaStreamsConfig.getJsonSerde()));
 
         questionKStream.mapValues(chatNode -> {
-            try {
+//            try {
                 JsonNode nodeWithQuestion = questionGenerator.getQuestion(config, chatNode);
 
                 JsonNode questionDetails = nodeWithQuestion.get("questionDetails");
@@ -51,10 +51,10 @@ public class CreateStream {
                         questionDetails, chatNode.at(JsonPointerNameConstants.conversationId).asText());
 
                 return nodeWithQuestion;
-            } catch (Exception e) {
-                log.error(e.getMessage());
-                return null;
-            }
+//            } catch (Exception e) {
+//                log.error(e.getMessage());
+//                return null;
+//            }
         }).to(sendMessageTopic, Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));
 
         kafkaStreamsConfig.startStream(builder, streamConfiguration);
