@@ -6,14 +6,18 @@ optional : false
 type : text
 
 validationRequired: true
-validatorType: FixedSetValues
+typeOfValues: FixedSetValues
 
 message : "What is the type of complaint?"
 
 values :
+  batchSize : 9
   class : org.egov.chat.xternal.valuefetch.ComplainTypeValueFetcher
   params :
     tenantId : /tenantId
 
 displayValuesAsOptions : true
 fuzzyMatch : 90
+
+fuzzyMatchThreshold: 70
+matchAnswerThreshold: 90

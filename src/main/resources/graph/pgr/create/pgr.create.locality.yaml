@@ -6,20 +6,16 @@ optional : false
 type : text
 
 validationRequired : true
-validatorType : FixedSetValues
+typeOfValues : FixedSetValues
 
 message : "What is the locality?"
 
-input : pgr.create.locality.input
-output : pgr.create.locality.output
-question : pgr.create.locality.question
-
 values :
+  batchSize : 9
   class : org.egov.chat.xternal.valuefetch.LocalityValueFetcher
   params :
     tenantId : /tenantId
     authToken : /user/authToken
-    complaintType: ~pgr.create.complaintType
 
 displayValuesAsOptions : true
-fuzzyMatch : 90
+matchAnswerThreshold: 90

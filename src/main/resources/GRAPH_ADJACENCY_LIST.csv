@@ -1,8 +1,6 @@
-root,pgr.create.complaintType,pt.renew.propertyId
+root,pgr.create.complaintType
 pgr.create.complaintType,pgr.create.locality
 pgr.create.locality,pgr.create.complaintDetails
 pgr.create.complaintDetails,pgr.create.address
 pgr.create.address,pgr.create.end
 pgr.create.end
-pt.renew.propertyId,pt.renew.end
-pt.renew.end

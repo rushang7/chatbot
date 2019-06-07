@@ -15,14 +15,17 @@ public class AnswerExtractor {
 
     @Autowired
     private ValueFetcher valueFetcher;
+    @Autowired
+    private FixedSetValues fixedSetValues;
 
     public JsonNode extractAnswer(JsonNode config, JsonNode chatNode) {
 
         if(! config.get("type").asText().equalsIgnoreCase(chatNode.at(JsonPointerNameConstants.messageType).asText()))      //Type mismatch
             return chatNode;
 
-        if(config.get("validatorType") != null && config.get("validatorType").asText().equalsIgnoreCase("FixedSetValues")) {
-            chatNode = extractAnswerFromFixedSet(config, chatNode);
+        if(config.get("typeOfValues") != null && config.get("typeOfValues").asText().equalsIgnoreCase("FixedSetValues")) {
+//            chatNode = extractAnswerFromFixedSet(config, chatNode);
+            chatNode = fixedSetValues.extractAnswer(config, chatNode);
         }
 
         return chatNode;

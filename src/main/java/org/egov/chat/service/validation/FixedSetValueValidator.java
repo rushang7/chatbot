@@ -47,7 +47,7 @@ public class FixedSetValueValidator {
 
     boolean fuzzyMatchAnswerWithValidValues(String answer, List<String> validValues, JsonNode config) {
 
-        Integer matchScoreThreshold = config.get("fuzzyMatch").asInt();
+        Integer matchScoreThreshold = config.get("matchAnswerThreshold").asInt();
 
         Integer fuzzyMatchScore;
         for(String validValue : validValues) {

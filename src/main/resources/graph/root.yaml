@@ -1,12 +1,13 @@
 name : root
 nodeType : branch
 message : " Hi,\n What would you like to do :"
+
 validationRequired: true
-validatorType: FixedSetValues
+typeOfValues: FixedSetValues
 
 values : [ "File a complaint" ]
 displayValuesAsOptions : true
-fuzzyMatch : 70
+matchAnswerThreshold : 70
 
 type : text
 

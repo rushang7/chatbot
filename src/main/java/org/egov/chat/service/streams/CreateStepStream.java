@@ -13,6 +13,7 @@ import org.egov.chat.service.AnswerExtractor;
 import org.egov.chat.service.AnswerStore;
 import org.egov.chat.service.validation.Validator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.Properties;
@@ -30,6 +31,8 @@ public class CreateStepStream extends CreateStream {
     private AnswerExtractor answerExtractor;
     @Autowired
     private AnswerStore answerStore;
+    @Autowired
+    private KafkaTemplate<String, JsonNode> kafkaTemplate;
 
 
     public void createEvaluateAnswerStreamForConfig(JsonNode config, String answerInputTopic, String answerOutputTopic, String questionTopic) {
@@ -51,6 +54,11 @@ public class CreateStepStream extends CreateStream {
         branches[0].mapValues(chatNode -> {
             try {
                 chatNode = answerExtractor.extractAnswer(config, chatNode);
+
+                if(chatNode.get("reQuestion") != null && chatNode.get("reQuestion").asBoolean()) {
+                    kafkaTemplate.send(questionTopic, chatNode);
+                    return null;
+                }
 
                 answerStore.saveAnswer(config, chatNode);
 

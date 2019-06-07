@@ -7,6 +7,7 @@ CREATE TABLE eg_chat_conversation_state(
     active_node_id character varying(100),
     user_id character varying(100),
     active BOOLEAN,
+    question_details jsonb,
     PRIMARY KEY (id),
     UNIQUE (conversation_id)
 );

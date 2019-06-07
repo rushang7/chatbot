@@ -30,6 +30,8 @@ public class InputSegregator {
 
             String activeNodeId = conversationStateRepository.getActiveNodeIdForConversation(conversationId);
 
+            log.debug("Active Node Id : " + activeNodeId);
+
             String topic = getOutputTopcName(activeNodeId);
 
             kafkaTemplate.send(topic, consumerRecord.key(), chatNode);
