@@ -83,7 +83,10 @@ public class FixedSetValues {
         List<String> validValues = null;
 
         try {
-            validValues = objectMapper.readValue(questionDetails.get("askedValues").toString(), List.class);
+            if(displayValuesAsOptions)
+                validValues = objectMapper.readValue(questionDetails.get("askedValues").toString(), List.class);
+            else
+                validValues = objectMapper.readValue(questionDetails.get("allValues").toString(), List.class);
         } catch (IOException e) {
             return null;
         }

@@ -9,7 +9,7 @@ message: "Which city?"
 
 validationRequired : true
 typeOfValues : FixedSetValues
-displayValuesAsOptions : true
+displayValuesAsOptions : false
 
 values :
   batchSize : 9
