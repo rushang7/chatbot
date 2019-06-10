@@ -48,12 +48,7 @@ public class QuestionGenerator {
 
         if(config.get("typeOfValues") != null && config.get("typeOfValues").asText().equalsIgnoreCase("FixedSetValues")) {
 
-            if(config.get("displayValuesAsOptions") != null && config.get("displayValuesAsOptions").asText().equalsIgnoreCase("false")) {
-
-                JsonNode questionDetails = fixedSetValues.getAllValidValues(config, chatNode);
-                ( (ObjectNode) chatNode).set("questionDetails", questionDetails);
-
-            } else if(config.get("displayValuesAsOptions") != null && config.get("displayValuesAsOptions").asText().equalsIgnoreCase("true")) {
+            if(config.get("displayValuesAsOptions") != null && config.get("displayValuesAsOptions").asText().equalsIgnoreCase("true")) {
 
                 boolean reQuestion = chatNode.get("reQuestion") != null && chatNode.get("reQuestion").asBoolean();
                 JsonNode questionDetails;
@@ -73,6 +68,11 @@ public class QuestionGenerator {
                 for(int index = 1; index < values.size() + 1; index++) {
                     options += "\n" + index + ". " + values.get(index - 1).asText();
                 }
+            } else {
+
+                JsonNode questionDetails = fixedSetValues.getAllValidValues(config, chatNode);
+                ( (ObjectNode) chatNode).set("questionDetails", questionDetails);
+
             }
         }
 
