@@ -1,0 +1,21 @@
+name: pgr.create.tenantId
+description : "City"
+nodeType : step
+optional : false
+
+type: text
+
+message: "Which city?"
+
+validationRequired : true
+typeOfValues : FixedSetValues
+displayValuesAsOptions : true
+
+values :
+  batchSize : 9
+  class : org.egov.chat.xternal.valuefetch.TenantIdValueFetcher
+  params :
+    tenantId : /tenantId
+
+fuzzyMatchThreshold: 70
+matchAnswerThreshold: 90

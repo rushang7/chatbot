@@ -14,5 +14,4 @@ type : text
 question : root.question
 input : root.input
 
-File a complaint : pgr.create.complaintType
-Renew Property tax : pt.renew.propertyId
+File a complaint : pgr.create.tenantId

@@ -15,7 +15,7 @@ values :
   batchSize : 9
   class : org.egov.chat.xternal.valuefetch.LocalityValueFetcher
   params :
-    tenantId : /tenantId
+    tenantId : ~pgr.create.tenantId
     authToken : /user/authToken
 
 fuzzyMatchThreshold: 70

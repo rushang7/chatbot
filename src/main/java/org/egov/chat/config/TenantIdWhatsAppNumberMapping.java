@@ -8,7 +8,7 @@ public class TenantIdWhatsAppNumberMapping {
     // TODO : Remove hard-coded mapping
 
     public String getTenantIdForNumber(String number) {
-        return "pb.amritsar";
+        return "pb";
     }
 
     public String getNumberForTenantId(String tenantId) {
