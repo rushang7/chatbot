@@ -41,13 +41,17 @@ public class ValueFetcher {
         if(config.get("values").isArray()) {
             return answer;
         } else {
-            String externalValueFetcherClassName = config.get("values").get("class").asText();
-            ExternalValueFetcher externalValueFetcher = getExternalValueFetcher(externalValueFetcherClassName);
+            ExternalValueFetcher externalValueFetcher = getExternalValueFetcher(config);
 
             ObjectNode params = createParamsToFetchValues(config, chatNode);
 
             return externalValueFetcher.getCodeForValue(params, answer);
         }
+    }
+
+    public String getExternalLinkForParams(JsonNode config, JsonNode chatNode) {
+        ExternalValueFetcher externalValueFetcher = getExternalValueFetcher(config);
+        return externalValueFetcher.createExternalLinkForParams(createParamsToFetchValues(config, chatNode));
     }
 
     List<String> getValuesFromArrayNode(JsonNode config) {
@@ -59,9 +63,7 @@ public class ValueFetcher {
     }
 
     List<String> getValuesFromExternalSource(JsonNode config, JsonNode chatNode) {
-
-        String externalValueFetcherClassName = config.get("values").get("class").asText();
-        ExternalValueFetcher externalValueFetcher = getExternalValueFetcher(externalValueFetcherClassName);
+        ExternalValueFetcher externalValueFetcher = getExternalValueFetcher(config);
 
         ObjectNode params = createParamsToFetchValues(config, chatNode);
 
@@ -98,7 +100,8 @@ public class ValueFetcher {
         return params;
     }
 
-    ExternalValueFetcher getExternalValueFetcher(String className) {
+    ExternalValueFetcher getExternalValueFetcher(JsonNode config) {
+        String className = config.get("values").get("class").asText();
         for(ExternalValueFetcher externalValueFetcher : externalValueFetchers) {
             if(externalValueFetcher.getClass().getName().equalsIgnoreCase(className))
                 return externalValueFetcher;

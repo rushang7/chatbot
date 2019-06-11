@@ -10,4 +10,6 @@ public interface ExternalValueFetcher {
 
     public String getCodeForValue(ObjectNode params, String value);
 
+    public String createExternalLinkForParams(ObjectNode params);
+
 }

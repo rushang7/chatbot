@@ -7,16 +7,16 @@ type : text
 
 validationRequired : true
 typeOfValues : FixedSetValues
-displayValuesAsOptions : true
+displayOptionsInExternalLink: true
 
-message : "What is the locality?"
+message : "Choose your locality from the page: "
 
 values :
-  batchSize : 9
   class : org.egov.chat.xternal.valuefetch.LocalityValueFetcher
   params :
     tenantId : ~pgr.create.tenantId
     authToken : /user/authToken
+    recipient: /recipient/to
 
 fuzzyMatchThreshold: 70
 matchAnswerThreshold: 90

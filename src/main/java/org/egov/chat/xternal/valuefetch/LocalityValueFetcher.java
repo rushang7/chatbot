@@ -33,6 +33,12 @@ public class LocalityValueFetcher implements ExternalValueFetcher {
     @Value("${location.service.search.path}")
     private String locationServiceSearchPath;
 
+    @Value("${egov.external.host}")
+    private String egovExternalHost;
+    @Value("${locality.options.path}")
+    private String localityOptionsPath;
+
+
     private Map<String, String> defaultQueryParams = new HashMap<String, String>() {{
         put("hierarchyTypeCode","ADMIN");
         put("boundaryType", "Locality");
@@ -48,6 +54,14 @@ public class LocalityValueFetcher implements ExternalValueFetcher {
     @Override
     public String getCodeForValue(ObjectNode params, String value) {
         return getMohallaCode(fetchValues(params), value);
+    }
+
+    @Override
+    public String createExternalLinkForParams(ObjectNode params) {
+        String mobile = params.get("recipient").asText();
+        String tenantId = params.get("tenantId").asText();
+
+        return egovExternalHost + localityOptionsPath + "?mobile=" + mobile + "&tenantId=" + tenantId;
     }
 
     private ObjectNode fetchValues(ObjectNode params) {

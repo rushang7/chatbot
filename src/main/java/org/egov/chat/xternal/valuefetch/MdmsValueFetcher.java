@@ -63,4 +63,9 @@ public class MdmsValueFetcher implements ExternalValueFetcher {
     public String getCodeForValue(ObjectNode params, String value) {
         return value;
     }
+
+    @Override
+    public String createExternalLinkForParams(ObjectNode params) {
+        return null;
+    }
 }

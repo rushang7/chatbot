@@ -4,15 +4,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
 import lombok.extern.slf4j.Slf4j;
 import org.egov.chat.config.JsonPointerNameConstants;
 import org.egov.chat.repository.ConversationStateRepository;
 import org.egov.chat.service.valuefetch.ValueFetcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @Slf4j
@@ -43,6 +40,7 @@ public class QuestionGenerator {
         return config.get("message").asText();
     }
 
+    // TODO : Re-factor
     private String getOptionsForConfig(JsonNode config, JsonNode chatNode) {
         String options = "";
 
@@ -73,6 +71,10 @@ public class QuestionGenerator {
                 JsonNode questionDetails = fixedSetValues.getAllValidValues(config, chatNode);
                 ( (ObjectNode) chatNode).set("questionDetails", questionDetails);
 
+            }
+
+            if(config.get("displayOptionsInExternalLink") != null && config.get("displayOptionsInExternalLink").asBoolean()) {
+                options += valueFetcher.getExternalLinkForParams(config, chatNode);
             }
         }
 

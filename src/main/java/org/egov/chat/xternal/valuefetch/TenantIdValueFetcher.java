@@ -37,6 +37,11 @@ public class TenantIdValueFetcher implements ExternalValueFetcher {
         return getTenantIdCode(fetchMdmsData(params), value);
     }
 
+    @Override
+    public String createExternalLinkForParams(ObjectNode params) {
+        return null;
+    }
+
     private JSONArray fetchMdmsData(ObjectNode params) {
         String tenantIdArg = params.get("tenantId").asText();
 
