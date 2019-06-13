@@ -54,7 +54,7 @@ public class KarixResponseFormatter implements ResponseFormatter {
         try {
             karixRequest = objectMapper.readTree(request.jsonString());
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error(e.getMessage());
         }
 
         return karixRequest;

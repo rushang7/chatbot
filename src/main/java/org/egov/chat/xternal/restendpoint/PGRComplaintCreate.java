@@ -46,9 +46,9 @@ public class PGRComplaintCreate implements RestEndpoint {
     public ObjectNode messageForRestCall(ObjectNode params) throws Exception {
         String authToken = params.get("authToken").asText();
         String refreshToken = params.get("refreshToken").asText();
-        String tenantId = params.get("tenantId").asText();
         String mobileNumber = params.get("mobileNumber").asText();
         String complaintType = params.get("pgr.create.complaintType").asText();
+        String city = params.get("pgr.create.tenantId").asText();
         String locality = params.get("pgr.create.locality").asText();
         String complaintDetails = params.get("pgr.create.complaintDetails").asText();
         String address = params.get("pgr.create.address").asText();
@@ -58,9 +58,9 @@ public class PGRComplaintCreate implements RestEndpoint {
 
         request.set("$.RequestInfo.authToken", authToken);
         request.set("$.RequestInfo.userInfo",  userInfo.json());
-        request.set("$.services.[0].addressDetail.city", tenantId);
-        request.set("$.services.[0].city", tenantId);
-        request.set("$.services.[0].tenantId", tenantId);
+        request.set("$.services.[0].addressDetail.city", city);
+        request.set("$.services.[0].city", city);
+        request.set("$.services.[0].tenantId", city);
         request.set("$.services.[0].addressDetail.mohalla", locality);
         request.set("$.services.[0].serviceCode", complaintType);
         request.set("$.services.[0].phone", mobileNumber);

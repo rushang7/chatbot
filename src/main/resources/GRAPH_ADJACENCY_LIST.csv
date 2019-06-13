@@ -1,6 +1,6 @@
 root,pgr.create.tenantId
 pgr.create.tenantId,pgr.create.complaintType
 pgr.create.complaintType,pgr.create.locality
-pgr.create.locality,pgr.create.address
-pgr.create.address,pgr.create.end
+pgr.create.locality,pgr.create.complaintDetails
+pgr.create.complaintDetails,pgr.create.end
 pgr.create.end

@@ -1,6 +1,7 @@
 package org.egov.chat.config;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
@@ -42,6 +43,7 @@ public class KafkaStreamsConfig {
     private void initDefaultStreamConfiguration() {
         defaultStreamConfiguration = new Properties();
         defaultStreamConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, applicationProperties.getKafkaHost());
+        defaultStreamConfiguration.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
         defaultStreamConfiguration.put(StreamsConfig.DEFAULT_DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG,
                 LogAndContinueExceptionHandler.class.getName());
     }
