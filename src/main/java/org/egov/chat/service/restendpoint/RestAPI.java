@@ -37,7 +37,7 @@ public class RestAPI {
 
         ObjectNode params = makeParamsforConfig(config, chatNode);
 
-        return restEndpoint.messageForRestCall(params);
+        return restEndpoint.getMessageForRestCall(params);
     }
 
     private ObjectNode makeParamsforConfig(JsonNode config, JsonNode chatNode) {

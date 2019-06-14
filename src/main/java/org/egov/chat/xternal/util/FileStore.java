@@ -19,6 +19,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Base64;
 
 @Slf4j
 @PropertySource("classpath:xternal.properties")
@@ -103,4 +104,7 @@ public class FileStore {
         return tempFile;
     }
 
+    public String getBase64EncodedStringOfFile(File file) throws IOException {
+        return new String(Base64.getEncoder().encode(FileUtils.readFileToByteArray(file)));
+    }
 }

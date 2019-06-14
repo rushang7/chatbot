@@ -3,6 +3,7 @@ package org.egov.chat.xternal.util;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
+import org.springframework.http.HttpEntity;
 
 import java.io.*;
 import java.net.URL;
@@ -39,39 +40,42 @@ public class FileStoreTest {
     @Test
     public void fileBase64TransformTest() throws IOException {
 
-        String filename = "/home/rushang/Downloads/Sandbox user guide.pdf";
-        File file = new File(filename);
+//        String filename = "/home/rushang/Downloads/Sandbox user guide.pdf";
+//        File file = new File(filename);
 
-        FileInputStream fileInputStream = new FileInputStream(file);
+//        FileInputStream fileInputStream = new FileInputStream(file);
+//
+//        File f2 = new File(filename + ".enc");
+//        FileOutputStream fileOutputStream = new FileOutputStream(f2);
+//        OutputStream outputStream = Base64.getEncoder().wrap(fileOutputStream);
+//
+//        int _byte;
+//        while ((_byte = fileInputStream.read()) != -1)
+//        {
+//            outputStream.write(_byte);
+//        }
+//
+//        outputStream.close();
 
-        File f2 = new File(filename + ".enc");
-        FileOutputStream fileOutputStream = new FileOutputStream(f2);
-        OutputStream outputStream = Base64.getEncoder().wrap(fileOutputStream);
-
-        int _byte;
-        while ((_byte = fileInputStream.read()) != -1)
-        {
-            outputStream.write(_byte);
-        }
-
-        outputStream.close();
+//        String asd = new String(Base64.getEncoder().encode(FileUtils.readFileToByteArray(file)));
+//
+//        System.out.println(asd.length());
 
 //        FileInputStream fileInputStream1 = new FileInputStream(f2);
-//
+
 //        String string = new String( FileUtils.readFileToByteArray(f2) );
 //
-//        System.out.println(string);
-//
+//        System.out.println(string.length());
+
 //        f2.delete();
 
     }
 
     @Test
     public void readEncodedFile() throws IOException {
-        String filename = "/home/rushang/Downloads/Sandbox user guide.pdf.enc";
-
-        System.out.println(FileUtils.sizeOf(new File(filename)));
-
+//        String filename = "/home/rushang/Downloads/Sandbox user guide.pdf.enc";
+//
+//        System.out.println(FileUtils.sizeOf(new File(filename)));
 
     }
 

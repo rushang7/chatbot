@@ -4,6 +4,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public interface RestEndpoint {
 
-    public ObjectNode messageForRestCall(ObjectNode params) throws Exception;
+    public ObjectNode getMessageForRestCall(ObjectNode params) throws Exception;
 
 }

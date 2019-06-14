@@ -4,6 +4,6 @@ nodeType : step
 optional : true
 validationRequired : false
 
-message : "Would you like to mention any addtional details?"
+message : "If you wish you can mention any addtional details?"
 
 type : text

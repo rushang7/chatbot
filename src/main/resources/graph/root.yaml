@@ -5,7 +5,7 @@ message : " Hi,\n What would you like to do :"
 validationRequired: true
 typeOfValues: FixedSetValues
 
-values : [ "File a complaint" ]
+values : [ "File a complaint", "Track complaint" ]
 displayValuesAsOptions : true
 matchAnswerThreshold : 70
 
@@ -15,3 +15,4 @@ question : root.question
 input : root.input
 
 File a complaint : pgr.create.tenantId
+Track complaint : pgr.track.complaintNumber

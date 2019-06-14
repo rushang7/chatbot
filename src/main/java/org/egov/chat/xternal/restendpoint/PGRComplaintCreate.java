@@ -30,11 +30,6 @@ public class PGRComplaintCreate implements RestEndpoint {
     @Value("${egov.external.host}")
     private String egovExternalHost;
 
-    @Value("${location.service.host}")
-    private String locationServiceHost;
-    @Value("${location.service.search.path}")
-    private String locationServiceSearchPath;
-
     @Value("${pgr.service.host}")
     private String pgrHost;
     @Value("${pgr.service.create.path}")
@@ -43,7 +38,7 @@ public class PGRComplaintCreate implements RestEndpoint {
     String pgrCreateRequestBody = "{\"RequestInfo\":{\"authToken\":\"\", \"userInfo\": {}},\"actionInfo\":[{\"media\":[]}],\"services\":[{\"addressDetail\":{\"city\":\"\",\"mohalla\":\"\"},\"city\":\"\",\"mohalla\":\"\",\"phone\":\"\",\"serviceCode\":\"\",\"source\":\"web\",\"tenantId\":\"\"}]}";
 
     @Override
-    public ObjectNode messageForRestCall(ObjectNode params) throws Exception {
+    public ObjectNode getMessageForRestCall(ObjectNode params) throws Exception {
         String authToken = params.get("authToken").asText();
         String refreshToken = params.get("refreshToken").asText();
         String mobileNumber = params.get("mobileNumber").asText();
@@ -51,7 +46,6 @@ public class PGRComplaintCreate implements RestEndpoint {
         String city = params.get("pgr.create.tenantId").asText();
         String locality = params.get("pgr.create.locality").asText();
         String complaintDetails = params.get("pgr.create.complaintDetails").asText();
-        String address = params.get("pgr.create.address").asText();
         DocumentContext userInfo = JsonPath.parse(params.get("userInfo").asText());
 
         DocumentContext request = JsonPath.parse(pgrCreateRequestBody);
@@ -65,7 +59,6 @@ public class PGRComplaintCreate implements RestEndpoint {
         request.set("$.services.[0].serviceCode", complaintType);
         request.set("$.services.[0].phone", mobileNumber);
         request.set("$.services.[0].description", complaintDetails);
-        request.set("$.services.[0].addressDetail.houseNoAndStreetName", address);
 
         log.info("PGR Create complaint request : " + request.jsonString());
 
