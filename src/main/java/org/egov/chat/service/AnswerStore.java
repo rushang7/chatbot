@@ -17,9 +17,6 @@ public class AnswerStore {
 
     public void saveAnswer(JsonNode config, JsonNode chatNode) {
 
-        if(! config.get("type").asText().equalsIgnoreCase(chatNode.at(JsonPointerNameConstants.messageType).asText()))      //Type mismatch
-            return;
-
         String nodeId = config.get("name").asText();
         String conversationId = chatNode.at(JsonPointerNameConstants.conversationId).asText();
         String messageContent = chatNode.at(JsonPointerNameConstants.messageContent).asText();

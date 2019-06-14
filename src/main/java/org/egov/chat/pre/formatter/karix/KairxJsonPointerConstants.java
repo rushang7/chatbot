@@ -10,4 +10,6 @@ public class KairxJsonPointerConstants {
 
     public static String textContent = "/body/eventContent/message/text/body";
 
+    public static String locationContent = "/body/eventContent/message/location";
+
 }

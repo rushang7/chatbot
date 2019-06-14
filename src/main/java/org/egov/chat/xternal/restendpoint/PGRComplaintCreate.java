@@ -35,7 +35,8 @@ public class PGRComplaintCreate implements RestEndpoint {
     @Value("${pgr.service.create.path}")
     private String pgrCreateComplaintPath;
 
-    String pgrCreateRequestBody = "{\"RequestInfo\":{\"authToken\":\"\", \"userInfo\": {}},\"actionInfo\":[{\"media\":[]}],\"services\":[{\"addressDetail\":{\"city\":\"\",\"mohalla\":\"\"},\"city\":\"\",\"mohalla\":\"\",\"phone\":\"\",\"serviceCode\":\"\",\"source\":\"web\",\"tenantId\":\"\"}]}";
+    String pgrCreateRequestBody = "{\"RequestInfo\":{\"authToken\":\"\", \"userInfo\": {}}," +
+            "\"actionInfo\":[{\"media\":[]}],\"services\":[{\"addressDetail\":{\"city\":\"\",\"mohalla\":\"\",\"latitude\" : \"\",\"longitude\" : \"\"},\"city\":\"\",\"mohalla\":\"\",\"phone\":\"\",\"serviceCode\":\"\",\"source\":\"web\",\"tenantId\":\"\"}]}";
 
     @Override
     public ObjectNode getMessageForRestCall(ObjectNode params) throws Exception {
@@ -48,13 +49,18 @@ public class PGRComplaintCreate implements RestEndpoint {
         String complaintDetails = params.get("pgr.create.complaintDetails").asText();
         DocumentContext userInfo = JsonPath.parse(params.get("userInfo").asText());
 
+        String location = params.get("pgr.create.location").asText();
+        ObjectNode locationNode = (ObjectNode) objectMapper.readTree(location);
+
         DocumentContext request = JsonPath.parse(pgrCreateRequestBody);
 
         request.set("$.RequestInfo.authToken", authToken);
         request.set("$.RequestInfo.userInfo",  userInfo.json());
-        request.set("$.services.[0].addressDetail.city", city);
         request.set("$.services.[0].city", city);
         request.set("$.services.[0].tenantId", city);
+        request.set("$.services.[0].addressDetail.latitude", locationNode.get("latitude").asText());
+        request.set("$.services.[0].addressDetail.longitude", locationNode.get("longitude").asText());
+        request.set("$.services.[0].addressDetail.city", city);
         request.set("$.services.[0].addressDetail.mohalla", locality);
         request.set("$.services.[0].serviceCode", complaintType);
         request.set("$.services.[0].phone", mobileNumber);

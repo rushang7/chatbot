@@ -36,8 +36,8 @@ public class KarixRequestFormatter implements RequestFormatter {
     public boolean isValid(JsonNode inputRequest) {
 
         try {
-            log.debug("Karix Request Content Type : " + inputRequest.at(KairxJsonPointerConstants.contentType).asText());
-            if(inputRequest.at(KairxJsonPointerConstants.contentType).asText().equalsIgnoreCase("text")) {
+            String contentType = inputRequest.at(KairxJsonPointerConstants.contentType).asText();
+            if(contentType.equalsIgnoreCase("text") || contentType.equalsIgnoreCase("location")) {
 
                 return true;
             }
@@ -60,6 +60,8 @@ public class KarixRequestFormatter implements RequestFormatter {
         message.set("type", inputRequest.at(KairxJsonPointerConstants.contentType));
         if(message.get("type").asText().equalsIgnoreCase("text")) {
             message.set("content", inputRequest.at(KairxJsonPointerConstants.textContent));
+        } else if(message.get("type").asText().equalsIgnoreCase("location")) {
+            message.set("content", TextNode.valueOf(inputRequest.at(KairxJsonPointerConstants.locationContent).toString()));
         }
 
         ObjectNode recipient = objectMapper.createObjectNode();

@@ -20,9 +20,6 @@ public class AnswerExtractor {
 
     public JsonNode extractAnswer(JsonNode config, JsonNode chatNode) {
 
-        if(! config.get("type").asText().equalsIgnoreCase(chatNode.at(JsonPointerNameConstants.messageType).asText()))      //Type mismatch
-            return chatNode;
-
         if(config.get("typeOfValues") != null && config.get("typeOfValues").asText().equalsIgnoreCase("FixedSetValues")) {
             chatNode = fixedSetValues.extractAnswer(config, chatNode);
         }
