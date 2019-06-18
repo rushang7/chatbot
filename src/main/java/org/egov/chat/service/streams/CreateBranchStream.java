@@ -73,11 +73,11 @@ public class CreateBranchStream extends CreateStream {
                     return null;
                 }
             }).to(targetTopicName, Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));
+
+            log.info("Branch Stream started : " + streamName + ", from : " + answerInputTopic + ", to : " + targetTopicName);
         }
 
         kafkaStreamsConfig.startStream(builder, streamConfiguration);
-
-        log.info("Branch Stream started : " + streamName + ", from : " + answerInputTopic);
     }
 
     private List<String> getBranchNames(JsonNode config) {

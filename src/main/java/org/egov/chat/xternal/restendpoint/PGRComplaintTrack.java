@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import lombok.extern.slf4j.Slf4j;
+import net.minidev.json.JSONArray;
 import org.egov.chat.service.restendpoint.RestEndpoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,6 +41,8 @@ public class PGRComplaintTrack implements RestEndpoint {
     private String pgrHost;
     @Value("${pgr.service.search.path}")
     private String pgrSearchComplaintPath;
+    @Value("${pgr.recent.complaints.count}")
+    private Integer numberOfRecentComplaints;
 
     String pgrRequestBody = "{\"RequestInfo\":{\"authToken\":\"\",\"userInfo\":\"\"}}";
 
@@ -47,7 +50,6 @@ public class PGRComplaintTrack implements RestEndpoint {
     public ObjectNode getMessageForRestCall(ObjectNode params) throws Exception {
         String tenantId = params.get("tenantId").asText();
         String authToken = params.get("authToken").asText();
-        String serviceRequestId = params.get("pgr.track.complaintNumber").asText();
         DocumentContext userInfo = JsonPath.parse(params.get("userInfo").asText());
 
         DocumentContext request = JsonPath.parse(pgrRequestBody);
@@ -55,8 +57,8 @@ public class PGRComplaintTrack implements RestEndpoint {
         request.set("$.RequestInfo.userInfo",  userInfo.json());
 
         UriComponentsBuilder uriComponents = UriComponentsBuilder.fromUriString(pgrHost + pgrSearchComplaintPath);
-        uriComponents.queryParam("serviceRequestId", serviceRequestId);
         uriComponents.queryParam("tenantId", tenantId);
+        uriComponents.queryParam("noOfRecords", numberOfRecentComplaints);
 
         JsonNode requestObject = null;
         try {
@@ -88,13 +90,30 @@ public class PGRComplaintTrack implements RestEndpoint {
 
             DocumentContext documentContext = JsonPath.parse(responseEntity.getBody().toString());
 
-            String message = "";
-            message += "Complaint Details :";
+            documentContext.read("$.services.length()");
 
-            message += "\nCategory : " + documentContext.read("$.services.[0].serviceCode");
-            Date createdDate = new Date((long) documentContext.read("$.services.[0].auditDetails.createdTime"));
-            message += "\nFiled Date : " + getDateFromTimestamp(createdDate);
-            message += "\nCurrent Status : " + documentContext.read("$.services.[0].status");
+            Integer numberOfServices = (Integer) ( (JSONArray) documentContext.read("$..services.length()")) .get(0);
+
+            String message = "";
+
+            if(numberOfServices == 1) {
+                message += "Complaint Details :";
+                message += "\nCategory : " + documentContext.read("$.services.[0].serviceCode");
+                Date createdDate = new Date((long) documentContext.read("$.services.[0].auditDetails.createdTime"));
+                message += "\nFiled Date : " + getDateFromTimestamp(createdDate);
+                message += "\nCurrent Status : " + documentContext.read("$.services.[0].status");
+            } else if(numberOfServices > 1) {
+                message += "Complaint Details :";
+                for (int i = 0; i < numberOfServices; i++) {
+                    message += "\n" + (i + 1) + ".";
+                    message += "\nCategory : " + documentContext.read("$.services.[" + i + "].serviceCode");
+                    Date createdDate = new Date((long) documentContext.read("$.services.[" + i + "].auditDetails.createdTime"));
+                    message += "\nFiled Date : " + getDateFromTimestamp(createdDate);
+                    message += "\nCurrent Status : " + documentContext.read("$.services.[" + i + "].status");
+                }
+            } else {
+                message += "No complaints to display";
+            }
 
             responseMessage.put("text", message);
         } else {

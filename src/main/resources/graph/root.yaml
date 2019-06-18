@@ -1,6 +1,6 @@
 name : root
 nodeType : branch
-message : " Hi,\n What would you like to do :"
+message : " Hi,\nWhat would you like to do :"
 
 validationRequired: true
 typeOfValues: FixedSetValues
@@ -15,4 +15,4 @@ question : root.question
 input : root.input
 
 File a complaint : pgr.create.tenantId
-Track complaint : pgr.track.complaintNumber
+Track complaint : pgr.track.end

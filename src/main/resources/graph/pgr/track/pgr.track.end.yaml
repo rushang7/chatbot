@@ -3,7 +3,7 @@ nodeType : endpoint
 
 class : org.egov.chat.xternal.restendpoint.PGRComplaintTrack
 
-nodes : [ pgr.track.complaintNumber ]
+nodes : [  ]
 params :
   tenantId : /tenantId
   authToken : /user/authToken
