@@ -31,11 +31,11 @@ public class FileStore {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Value("${egov.filestore.host}")
+    @Value("${filestore.service.host}")
     private String fileStoreHost;
-    @Value("${egov.filestore.put.endpoint}")
+    @Value("${filestore.service.put.endpoint}")
     private String fileStorePutEndpoint;
-    @Value("${egov.filestore.get.url.endpoint}")
+    @Value("${filestore.service.get.url.endpoint}")
     private String fileStoreGetEndpoint;
 
     public String downloadAndStore(String getLink, String tenantId, String module) {

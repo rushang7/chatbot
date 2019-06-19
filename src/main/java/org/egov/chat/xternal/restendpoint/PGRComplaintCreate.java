@@ -36,7 +36,7 @@ public class PGRComplaintCreate implements RestEndpoint {
     private String pgrCreateComplaintPath;
 
     String pgrCreateRequestBody = "{\"RequestInfo\":{\"authToken\":\"\", \"userInfo\": {}}," +
-            "\"actionInfo\":[{\"media\":[]}],\"services\":[{\"addressDetail\":{\"city\":\"\",\"mohalla\":\"\",\"latitude\" : \"\",\"longitude\" : \"\"},\"city\":\"\",\"mohalla\":\"\",\"phone\":\"\",\"serviceCode\":\"\",\"source\":\"web\",\"tenantId\":\"\"}]}";
+            "\"actionInfo\":[{\"media\":[]}],\"services\":[{\"addressDetail\":{\"city\":\"\",\"latitude\" : \"\",\"longitude\" : \"\"},\"city\":\"\",\"mohalla\":\"\",\"phone\":\"\",\"serviceCode\":\"\",\"source\":\"web\",\"tenantId\":\"\"}]}";
 
     @Override
     public ObjectNode getMessageForRestCall(ObjectNode params) throws Exception {
@@ -45,7 +45,7 @@ public class PGRComplaintCreate implements RestEndpoint {
         String mobileNumber = params.get("mobileNumber").asText();
         String complaintType = params.get("pgr.create.complaintType").asText();
         String city = params.get("pgr.create.tenantId").asText();
-        String locality = params.get("pgr.create.locality").asText();
+//        String locality = params.get("pgr.create.locality").asText();
         String complaintDetails = params.get("pgr.create.complaintDetails").asText();
         DocumentContext userInfo = JsonPath.parse(params.get("userInfo").asText());
 
@@ -61,7 +61,7 @@ public class PGRComplaintCreate implements RestEndpoint {
         request.set("$.services.[0].addressDetail.latitude", locationNode.get("latitude").asText());
         request.set("$.services.[0].addressDetail.longitude", locationNode.get("longitude").asText());
         request.set("$.services.[0].addressDetail.city", city);
-        request.set("$.services.[0].addressDetail.mohalla", locality);
+//        request.set("$.services.[0].addressDetail.mohalla", locality);
         request.set("$.services.[0].serviceCode", complaintType);
         request.set("$.services.[0].phone", mobileNumber);
         request.set("$.services.[0].description", complaintDetails);

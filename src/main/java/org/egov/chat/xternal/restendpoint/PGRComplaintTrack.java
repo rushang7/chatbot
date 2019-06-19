@@ -96,16 +96,11 @@ public class PGRComplaintTrack implements RestEndpoint {
 
             String message = "";
 
-            if(numberOfServices == 1) {
-                message += "Complaint Details :";
-                message += "\nCategory : " + documentContext.read("$.services.[0].serviceCode");
-                Date createdDate = new Date((long) documentContext.read("$.services.[0].auditDetails.createdTime"));
-                message += "\nFiled Date : " + getDateFromTimestamp(createdDate);
-                message += "\nCurrent Status : " + documentContext.read("$.services.[0].status");
-            } else if(numberOfServices > 1) {
+            if(numberOfServices > 0) {
                 message += "Complaint Details :";
                 for (int i = 0; i < numberOfServices; i++) {
-                    message += "\n" + (i + 1) + ".";
+                    if(numberOfServices > 1)
+                        message += "\n" + (i + 1) + ".";
                     message += "\nCategory : " + documentContext.read("$.services.[" + i + "].serviceCode");
                     Date createdDate = new Date((long) documentContext.read("$.services.[" + i + "].auditDetails.createdTime"));
                     message += "\nFiled Date : " + getDateFromTimestamp(createdDate);

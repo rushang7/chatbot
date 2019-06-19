@@ -1,10 +1,10 @@
 package org.egov.chat.xternal.valuefetch;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONArray;
-import net.minidev.json.JSONObject;
-import org.egov.chat.config.ApplicationProperties;
 import org.egov.chat.service.valuefetch.ExternalValueFetcher;
+import org.egov.chat.xternal.util.LocalizationService;
 import org.egov.common.contract.request.RequestInfo;
 import org.egov.mdms.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,15 +13,19 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import javax.annotation.PostConstruct;
 import java.util.*;
 
 @PropertySource("classpath:xternal.properties")
+@Slf4j
 @Component
 public class ComplainTypeValueFetcher implements ExternalValueFetcher {
 
     @Autowired
     private RestTemplate restTemplate;
+    @Autowired
+    private LocalizationService localizationService;
+
+    private String localizationPrefix = "pgr.complaint.category.";
 
     private String moduleName = "RAINMAKER-PGR";
     private String masterDetailsName = "ServiceDefs";
@@ -50,12 +54,19 @@ public class ComplainTypeValueFetcher implements ExternalValueFetcher {
 
         List<String> values = getActiveComplaintTypes(mdmsResValues);
 
+        values = getLocalizedValues(values);
+
         return values;
     }
 
     @Override
     public String getCodeForValue(ObjectNode params, String value) {
-        return value;
+        String code = localizationService.getCodeForMessage(value);
+        return getComplaintTypeCodeForLocalizationCode(code);
+    }
+
+    private String getComplaintTypeCodeForLocalizationCode(String code) {
+        return code.substring(code.lastIndexOf(".") + 1);
     }
 
     @Override
@@ -74,6 +85,15 @@ public class ComplainTypeValueFetcher implements ExternalValueFetcher {
         }
 
         return values;
+    }
+
+
+    private List<String> getLocalizedValues(List<String> values) {
+        List<String> localizedValues = new ArrayList<>();
+        for(String value : values) {
+            localizedValues.add(localizationService.getMessageForCode(localizationPrefix + value));
+        }
+        return localizedValues;
     }
 
 }
