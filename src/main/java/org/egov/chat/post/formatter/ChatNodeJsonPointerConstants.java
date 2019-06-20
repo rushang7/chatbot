@@ -1,10 +1,12 @@
-package org.egov.chat.post.formatter.karix;
+package org.egov.chat.post.formatter;
 
-public class KarixJsonPointerConstants {
+public class ChatNodeJsonPointerConstants {
 
     public static final String responseType = "/response/type";
 
     public static final String responseText = "/response/text";
+
+    public static final String attachmentFileStoreId = "/response/attachment/fileStoreId";
 
     public static final String toMobileNumber = "/user/mobileNumber";
 

@@ -38,9 +38,24 @@ public class FileStore {
     @Value("${filestore.service.get.url.endpoint}")
     private String fileStoreGetEndpoint;
 
-    public String downloadAndStore(String getLink, String tenantId, String module) {
+    @Value("${module.name}")
+    private String moduleName;
+    @Value("${state.level.tenant.id}")
+    private String stateLevelTenantId;
+
+
+    public String downloadAndStore(String getLink) {
+        String filename = FilenameUtils.getName(getLink);
+        return downloadAndStore(getLink, filename);
+    }
+
+    public String downloadAndStore(String getLink, String filename) {
+        return downloadAndStore(getLink, filename, stateLevelTenantId, moduleName);
+    }
+
+    public String downloadAndStore(String getLink, String filename, String tenantId, String module) {
         try {
-            File tempFile = getFileAt(getLink);
+            File tempFile = getFileAt(getLink, filename);
             String fileStoreId = saveToFileStore(tempFile, tenantId, module);
             tempFile.delete();
             return fileStoreId;
@@ -49,6 +64,10 @@ public class FileStore {
             log.error(e.getMessage());
         }
         return null;
+    }
+
+    public String saveToFileStore(File file) {
+        return saveToFileStore(file, stateLevelTenantId, moduleName);
     }
 
     public String saveToFileStore(File file, String tenantId, String module) {
@@ -69,16 +88,17 @@ public class FileStore {
             log.debug("File Store response : " + response.getBody().toString());
 
             return response.getBody().get("files").get(0).get("fileStoreId").asText();
-
         } catch (Exception e) {
             log.error("Error in file store save request");
             log.error(e.getMessage());
         }
 
-
         return null;
     }
 
+    public File getFileForFileStoreId(String fileStoreId) throws IOException {
+        return getFileForFileStoreId(fileStoreId, stateLevelTenantId);
+    }
 
     public File getFileForFileStoreId(String fileStoreId, String tenantId) throws IOException {
         UriComponentsBuilder uriComponents = UriComponentsBuilder.fromUriString(fileStoreHost + fileStoreGetEndpoint);
@@ -88,19 +108,23 @@ public class FileStore {
 
         ResponseEntity<ObjectNode> response = restTemplate.getForEntity(url, ObjectNode.class);
 
-        String fileURL = response.getBody().get(fileStoreId).asText();
-
-        return getFileAt(fileURL);
+        String fileURL = getRefinedFileURL( response.getBody().get(fileStoreId).asText() );
+        String filename = FilenameUtils.getName(fileURL);
+        filename = filename.substring(13, filename.indexOf("?"));       // TODO : 13 characters set by fileStore service
+        return getFileAt(fileURL, filename);
     }
 
-    public File getFileAt(String getLink) throws IOException {
-        File tempFile = new File(FilenameUtils.getName(getLink));
+    public String getRefinedFileURL(String fileURL) {
+        if(fileURL.contains(",")) {             // TODO : Because fileStore service returns , separated list of files
+            return fileURL.substring(0, fileURL.indexOf(","));
+        }
+        return fileURL;
+    }
 
+    public File getFileAt(String getLink, String filename) throws IOException {
+        File tempFile = new File(filename);
         URL url = new URL(getLink);
         FileUtils.copyURLToFile(url, tempFile);
-
-        log.debug("Filename : " + tempFile.getName());
-
         return tempFile;
     }
 

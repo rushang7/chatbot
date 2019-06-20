@@ -2,7 +2,6 @@ package org.egov.chat.post.formatter.karix;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import lombok.extern.slf4j.Slf4j;
@@ -14,18 +13,24 @@ import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
 import org.egov.chat.config.KafkaStreamsConfig;
 import org.egov.chat.config.TenantIdWhatsAppNumberMapping;
+import org.egov.chat.post.formatter.ChatNodeJsonPointerConstants;
 import org.egov.chat.post.formatter.ResponseFormatter;
+import org.egov.chat.xternal.util.FileStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.Properties;
+import java.net.URLConnection;
+import java.util.*;
 
 @Slf4j
 @Component
 public class KarixResponseFormatter implements ResponseFormatter {
 
-    String karixRequestBody = "{\"message\":{\"channel\":\"WABA\",\"content\":{\"preview_url\":false,\"type\":\"TEXT\",\"text\":\"\"},\"recipient\":{\"to\":\"\",\"recipient_type\":\"individual\",\"reference\":{\"cust_ref\":\"Some Customer Ref\",\"messageTag1\":\"Message Tag Val1\",\"conversationId\":\"Some Optional Conversation ID\"}},\"sender\":{\"from\":\"919845315868\"},\"preferences\":{\"webHookDNId\":\"sandbox\"}},\"metaData\":{\"version\":\"v1.0.9\"}}";
+    String karixTextMessageRequestBody = "{\"message\":{\"channel\":\"WABA\",\"content\":{\"preview_url\":false,\"type\":\"TEXT\",\"text\":\"\"},\"recipient\":{\"to\":\"\",\"recipient_type\":\"individual\",\"reference\":{\"cust_ref\":\"Some Customer Ref\",\"messageTag1\":\"Message Tag Val1\",\"conversationId\":\"Some Optional Conversation ID\"}},\"sender\":{\"from\":\"919845315868\"},\"preferences\":{\"webHookDNId\":\"sandbox\"}},\"metaData\":{\"version\":\"v1.0.9\"}}";
+
+    String karixAttachmentMessageRequestBody = "{\"message\":{\"channel\":\"WABA\",\"content\":{\"type\":\"ATTACHMENT\",\"attachment\":{\"type\":\"image\",\"caption\":\"\",\"mimeType\":\"\",\"attachmentData\":\"\"}},\"recipient\":{\"to\":\"\",\"recipient_type\":\"individual\",\"reference\":{\"cust_ref\":\"Some Customer Ref\",\"messageTag1\":\"Message Tag Val1\",\"conversationId\":\"Some Optional Conversation ID\"}},\"sender\":{\"from\":\"\"},\"preferences\":{\"webHookDNId\":\"1001\"}},\"metaData\":{\"version\":\"v1.0.9\"}}";
 
     @Autowired
     private KafkaStreamsConfig kafkaStreamsConfig;
@@ -33,31 +38,19 @@ public class KarixResponseFormatter implements ResponseFormatter {
     private ObjectMapper objectMapper;
 
     @Autowired
+    private FileStore fileStore;
+    @Autowired
     private TenantIdWhatsAppNumberMapping tenantIdWhatsAppNumberMapping;
+
+    private Map<String, String> mimeTypeToAttachmentTypeMapping = new HashMap<String, String>() {{
+        put("application/pdf","document");
+        put("image/jpeg", "image");
+        put("image/png", "image");
+    }};
 
     @Override
     public String getStreamName() {
         return "karix-response-transform";
-    }
-
-    @Override
-    public JsonNode getTransformedResponse(JsonNode response) {
-        DocumentContext request = JsonPath.parse(karixRequestBody);
-
-        request.set("$.message.content.type", response.at(KarixJsonPointerConstants.responseType).asText());
-        request.set("$.message.content.text", response.at(KarixJsonPointerConstants.responseText).asText());
-        request.set("$.message.recipient.to", "91" + response.at(KarixJsonPointerConstants.toMobileNumber).asText());
-        request.set("$.message.sender.from",
-                tenantIdWhatsAppNumberMapping.getNumberForTenantId(response.at(KarixJsonPointerConstants.tenantId).asText()));
-
-        JsonNode karixRequest = null;
-        try {
-            karixRequest = objectMapper.readTree(request.jsonString());
-        } catch (IOException e) {
-            log.error(e.getMessage());
-        }
-
-        return karixRequest;
     }
 
     @Override
@@ -68,7 +61,7 @@ public class KarixResponseFormatter implements ResponseFormatter {
         KStream<String, JsonNode> messagesKStream = builder.stream(inputTopic, Consumed.with(Serdes.String(),
                 kafkaStreamsConfig.getJsonSerde()));
 
-        messagesKStream.mapValues(response -> {
+        messagesKStream.flatMapValues(response -> {
             try {
                 return getTransformedResponse(response);
             } catch (Exception e) {
@@ -80,4 +73,73 @@ public class KarixResponseFormatter implements ResponseFormatter {
         kafkaStreamsConfig.startStream(builder, streamConfiguration);
 
     }
+
+    @Override
+    public List<JsonNode> getTransformedResponse(JsonNode response) throws IOException {
+        String tenantId = response.at(ChatNodeJsonPointerConstants.tenantId).asText();
+        String userMobileNumber = response.at(ChatNodeJsonPointerConstants.toMobileNumber).asText();
+        String type = response.at(ChatNodeJsonPointerConstants.responseType).asText();
+
+        List<JsonNode> karixRequests = new ArrayList<>();
+
+        DocumentContext request = null;
+        if(type.equalsIgnoreCase("text")) {
+            request = JsonPath.parse(karixTextMessageRequestBody);
+            request.set("$.message.content.type", type);
+            request.set("$.message.content.text", response.at(ChatNodeJsonPointerConstants.responseText).asText());
+        } else if(type.equalsIgnoreCase("attachment")) {
+            request = JsonPath.parse(karixAttachmentMessageRequestBody);
+            request.set("$.message.content.type", type);
+
+            String fileStoreId = response.at(ChatNodeJsonPointerConstants.attachmentFileStoreId).asText();
+            File file = fileStore.getFileForFileStoreId(fileStoreId);
+            String mimeType = URLConnection.guessContentTypeFromName(file.getName());
+            String attachmentType = getTypeFromMime(mimeType);
+            String attachmentData = fileStore.getBase64EncodedStringOfFile(file);
+
+            request.set("$.message.content.attachment.type", attachmentType);
+            request.set("$.message.content.attachment.mimeType", mimeType);
+            request.set("$.message.content.attachment.attachmentData", attachmentData);
+
+            if(attachmentType.equalsIgnoreCase("image")) {
+                if(response.at(ChatNodeJsonPointerConstants.responseText) != null)
+                    request.set("$.message.content.attachment.caption",
+                            response.at(ChatNodeJsonPointerConstants.responseText).asText());
+            } else if(attachmentType.equalsIgnoreCase("document")) {
+                request.set("$.message.content.attachment.caption", file.getName());
+
+                if(response.at(ChatNodeJsonPointerConstants.responseText) != null)
+                    karixRequests.add(createTextNodeForAttachment(response));
+            }
+        }
+
+        request.set("$.message.recipient.to", "91" + userMobileNumber);
+        request.set("$.message.sender.from", tenantIdWhatsAppNumberMapping.getNumberForTenantId(tenantId));
+
+        karixRequests.add(objectMapper.readTree(request.jsonString()));
+
+        log.debug("Karix Requests : " + karixRequests.size());
+
+        return karixRequests;
+    }
+
+    private String getTypeFromMime(String mimeType) {
+        return mimeTypeToAttachmentTypeMapping.get(mimeType);
+    }
+
+    private JsonNode createTextNodeForAttachment(JsonNode response) throws IOException {
+        String tenantId = response.at(ChatNodeJsonPointerConstants.tenantId).asText();
+        String userMobileNumber = response.at(ChatNodeJsonPointerConstants.toMobileNumber).asText();
+
+        DocumentContext request = null;
+        request = JsonPath.parse(karixTextMessageRequestBody);
+        request.set("$.message.content.type", "text");
+        request.set("$.message.content.text", response.at(ChatNodeJsonPointerConstants.responseText).asText());
+
+        request.set("$.message.recipient.to", "91" + userMobileNumber);
+        request.set("$.message.sender.from", tenantIdWhatsAppNumberMapping.getNumberForTenantId(tenantId));
+
+        return objectMapper.readTree(request.jsonString());
+    }
+
 }

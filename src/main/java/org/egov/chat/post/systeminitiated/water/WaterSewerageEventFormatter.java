@@ -12,6 +12,7 @@ import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
 import org.egov.chat.config.KafkaStreamsConfig;
 import org.egov.chat.post.systeminitiated.SystemInitiatedEventFormatter;
+import org.egov.chat.xternal.util.FileStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -27,6 +28,8 @@ public class WaterSewerageEventFormatter implements SystemInitiatedEventFormatte
     @Autowired
     private RestTemplate restTemplate;
 
+    @Autowired
+    private FileStore fileStore;
     @Autowired
     private KafkaStreamsConfig kafkaStreamsConfig;
 
@@ -66,7 +69,13 @@ public class WaterSewerageEventFormatter implements SystemInitiatedEventFormatte
         chatNode.put("tenantId", tenantId);
 
         ObjectNode responseMessage = objectMapper.createObjectNode();
-        responseMessage.put("type", "text");
+
+        if(containsAttachment(event)) {
+            responseMessage.put("type", "attachment");
+            responseMessage.set("attachment", createAttachmentNode(event));
+        } else {
+            responseMessage.put("type", "text");
+        }
         responseMessage.put("text", message);
         chatNode.set("response", responseMessage);
 
@@ -75,6 +84,31 @@ public class WaterSewerageEventFormatter implements SystemInitiatedEventFormatte
         chatNode.set("user", user);
 
         return chatNode;
+    }
+
+    public boolean containsAttachment(JsonNode event) {
+        if(event.get("body").has("attachmentLink"))
+            return true;
+        return false;
+    }
+
+    public JsonNode createAttachmentNode(JsonNode event) {
+        ObjectNode attachmentNode = objectMapper.createObjectNode();
+
+        String attachmentLink = event.at("/body/attachmentLink").asText();
+        String fileStoreId;
+        if(event.get("body").has("filename")) {
+            String filename = event.at("/body/filename").asText();
+            fileStoreId = fileStore.downloadAndStore(attachmentLink, filename);
+        } else {
+            fileStoreId = fileStore.downloadAndStore(attachmentLink);
+        }
+
+        attachmentNode.put("fileStoreId", fileStoreId);
+
+        log.debug(attachmentNode.toString());
+
+        return attachmentNode;
     }
 
 }
