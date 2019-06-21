@@ -90,8 +90,6 @@ public class PGRComplaintTrack implements RestEndpoint {
 
             DocumentContext documentContext = JsonPath.parse(responseEntity.getBody().toString());
 
-            documentContext.read("$.services.length()");
-
             Integer numberOfServices = (Integer) ( (JSONArray) documentContext.read("$..services.length()")) .get(0);
 
             String message = "";
@@ -100,10 +98,11 @@ public class PGRComplaintTrack implements RestEndpoint {
                 message += "Complaint Details :";
                 for (int i = 0; i < numberOfServices; i++) {
                     if(numberOfServices > 1)
-                        message += "\n" + (i + 1) + ".";
+                        message += "\n" + (i + 1) + ". ";
                     else
                         message += "\n";
-                    message += "Complaint Number : " + documentContext.read("$.services.[\" + i + \"].serviceRequestId");
+
+                    message += "Complaint Number : " + documentContext.read("$.services.[" + i + "].serviceRequestId");
                     message += "\nCategory : " + documentContext.read("$.services.[" + i + "].serviceCode");
                     Date createdDate = new Date((long) documentContext.read("$.services.[" + i + "].auditDetails.createdTime"));
                     message += "\nFiled Date : " + getDateFromTimestamp(createdDate);
