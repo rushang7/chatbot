@@ -1,4 +1,4 @@
-root,pgr.create.tenantId,pgr.track.end
+root,pgr.create.tenantId,pgr.track.end,ws.lastbill.end
 pgr.create.tenantId,pgr.create.complaintType
 pgr.create.complaintType,pgr.create.locality
 pgr.create.locality,pgr.create.location
@@ -6,3 +6,4 @@ pgr.create.location,pgr.create.complaintDetails
 pgr.create.complaintDetails,pgr.create.end
 pgr.create.end
 pgr.track.end
+ws.lastbill.end

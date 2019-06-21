@@ -96,6 +96,7 @@ public class KarixResponseFormatter implements ResponseFormatter {
             String mimeType = URLConnection.guessContentTypeFromName(file.getName());
             String attachmentType = getTypeFromMime(mimeType);
             String attachmentData = fileStore.getBase64EncodedStringOfFile(file);
+            file.delete();
 
             request.set("$.message.content.attachment.type", attachmentType);
             request.set("$.message.content.attachment.mimeType", mimeType);

@@ -1,9 +1,0 @@
-name : pgr.track.complaintNumber
-description : "Complaint Number"
-nodeType : step
-optional : false
-validationRequired : false
-
-message : "Please enter the complaint number"
-
-type : text
