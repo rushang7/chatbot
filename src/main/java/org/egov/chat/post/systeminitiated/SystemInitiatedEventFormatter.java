@@ -9,5 +9,5 @@ public interface SystemInitiatedEventFormatter {
 
     public void startStream(String inputTopic, String outputTopic) ;
 
-    public JsonNode createChatNode(JsonNode event) ;
+    public JsonNode createChatNode(JsonNode event) throws Exception;
 }

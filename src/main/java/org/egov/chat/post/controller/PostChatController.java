@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.egov.chat.post.formatter.karix.KarixResponseFormatter;
 import org.egov.chat.post.formatter.karix.KarixRestCall;
+import org.egov.chat.post.systeminitiated.pgr.PGRStatusUpdateEventFormatter;
 import org.egov.chat.post.systeminitiated.water.WaterSewerageEventFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -17,6 +18,8 @@ public class PostChatController {
     @Autowired
     private WaterSewerageEventFormatter waterSewerageEventFormatter;
     @Autowired
+    private PGRStatusUpdateEventFormatter pgrStatusUpdateEventFormatter;
+    @Autowired
     private KarixResponseFormatter karixResponseFormatter;
     @Autowired
     private KarixRestCall karixRestCall;
@@ -25,6 +28,7 @@ public class PostChatController {
     @PostConstruct
     public void init() {
         waterSewerageEventFormatter.startStream("water-sewerage-received-messages", "send-message");
+        pgrStatusUpdateEventFormatter.startStream("update-pgr-service", "send-message");
         karixResponseFormatter.startResponseStream("send-message", "karix-send-message");
     }
 

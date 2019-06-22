@@ -98,7 +98,7 @@ public class PGRComplaintTrack implements RestEndpoint {
                 message += "Complaint Details :";
                 for (int i = 0; i < numberOfServices; i++) {
                     if(numberOfServices > 1)
-                        message += "\n" + (i + 1) + ". ";
+                        message += "\n*" + (i + 1) + ".* ";
                     else
                         message += "\n";
 
