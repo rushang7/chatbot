@@ -16,7 +16,7 @@ public class ApplicationProperties {
     @Value("${egov.external.host}")
     private String egovExternalHost;
 
-    @Value("${user.service.host}")
+    @Value("${user.service.chatbot.host}")
     private String userServiceHost;
 
     @Value("${user.service.oauth.path}")
@@ -25,7 +25,7 @@ public class ApplicationProperties {
     @Value("${user.service.create.citizen.path}")
     private String citizenCreatePath;
 
-    @Value("${user.service.citizen.passwrord}")
+    @Value("${user.service.chatbot.citizen.passwrord}")
     private String hardcodedPassword;
 
 }

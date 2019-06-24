@@ -17,6 +17,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Properties;
 
 @Slf4j
@@ -46,9 +48,9 @@ public class WaterSewerageEventFormatter implements SystemInitiatedEventFormatte
         KStream<String, JsonNode> messagesKStream = builder.stream(inputTopic, Consumed.with(Serdes.String(),
                 kafkaStreamsConfig.getJsonSerde()));
 
-        messagesKStream.mapValues(event -> {
+        messagesKStream.flatMapValues(event -> {
             try {
-                return createChatNode(event);
+                return createChatNodes(event);
             } catch (Exception e) {
                 log.error(e.getMessage());
                 return null;
@@ -59,7 +61,7 @@ public class WaterSewerageEventFormatter implements SystemInitiatedEventFormatte
     }
 
     @Override
-    public JsonNode createChatNode(JsonNode event) {
+    public List<JsonNode> createChatNodes(JsonNode event) {
 
         String message = event.at("/body/message").asText();
         String tenantId = event.at("/body/tenantId").asText();
@@ -83,7 +85,7 @@ public class WaterSewerageEventFormatter implements SystemInitiatedEventFormatte
         user.put("mobileNumber", mobileNumber);
         chatNode.set("user", user);
 
-        return chatNode;
+        return Collections.singletonList(chatNode);
     }
 
     public boolean containsAttachment(JsonNode event) {
