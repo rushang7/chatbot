@@ -14,6 +14,7 @@ import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
 import org.egov.chat.config.KafkaStreamsConfig;
 import org.egov.chat.post.systeminitiated.SystemInitiatedEventFormatter;
+import org.egov.chat.xternal.util.LocalizationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
@@ -37,7 +39,10 @@ public class PGRStatusUpdateEventFormatter implements SystemInitiatedEventFormat
     private RestTemplate restTemplate;
     @Autowired
     private KafkaStreamsConfig kafkaStreamsConfig;
+    @Autowired
+    private LocalizationService localizationService;
 
+    private String complaintCategoryLocalizationPrefix = "pgr.complaint.category.";
 
     @Value("${state.level.tenant.id}")
     private String stateLevelTenantId;
@@ -79,11 +84,12 @@ public class PGRStatusUpdateEventFormatter implements SystemInitiatedEventFormat
 
     @Override
     public List<JsonNode> createChatNodes(JsonNode event) throws Exception {
-        String tenantId = stateLevelTenantId;
+        List<JsonNode> chatNodes = new ArrayList<>();
+
         String mobileNumber = event.at("/services/0/citizen/mobileNumber").asText();
 
         ObjectNode chatNode = objectMapper.createObjectNode();
-        chatNode.put("tenantId", tenantId);
+        chatNode.put("tenantId", stateLevelTenantId);
 
         ObjectNode user = objectMapper.createObjectNode();
         user.put("mobileNumber", mobileNumber);
@@ -91,8 +97,86 @@ public class PGRStatusUpdateEventFormatter implements SystemInitiatedEventFormat
 
         chatNode.set("response", createResponseMessage(event));
 
-        return Collections.singletonList(chatNode);
+        chatNodes.add(chatNode);
+
+        String status = event.at("/services/0/status").asText();
+
+        if(status.equalsIgnoreCase("assigned")) {
+            chatNodes.addAll(createChatNodeForAssignee(event));
+        }
+
+        return chatNodes;
     }
+
+    private List<JsonNode> createChatNodeForAssignee(JsonNode event) throws IOException {
+        List<JsonNode> chatNodes = new ArrayList<>();
+
+        JsonNode assignee = getAssignee(event);
+        String assigneeMobileNumber = assignee.at("/mobileNumber").asText();
+
+        ObjectNode chatNode = objectMapper.createObjectNode();
+        chatNode.put("tenantId", stateLevelTenantId);
+
+        ObjectNode user = objectMapper.createObjectNode();
+        user.put("mobileNumber", assigneeMobileNumber);
+        chatNode.set("user", user);
+
+        chatNode.set("response", createResponseMessageForAssignee(event, assignee));
+
+        chatNodes.add(chatNode);
+
+        if(eventContainsLocation(event))
+            chatNodes.add(createLocationNode(event, assignee));
+
+        return chatNodes;
+    }
+
+    private boolean eventContainsLocation(JsonNode event) {
+        if(event.get("services").get(0).get("addressDetail").get("latitude") != null)
+            return true;
+        return false;
+    }
+
+    private JsonNode createLocationNode(JsonNode event, JsonNode assignee) {
+        ObjectNode chatNode = objectMapper.createObjectNode();
+        chatNode.put("tenantId", stateLevelTenantId);
+
+        ObjectNode user = objectMapper.createObjectNode();
+        user.put("mobileNumber", assignee.at("/mobileNumber").asText());
+        chatNode.set("user", user);
+
+        chatNode.set("response", createLocationResponse(event));
+
+        return chatNode;
+    }
+
+    private JsonNode createLocationResponse(JsonNode event) {
+        ObjectNode responseMessage = objectMapper.createObjectNode();
+        responseMessage.put("type", "location");
+        ObjectNode location = objectMapper.createObjectNode();
+        location.put("latitude", event.at("/services/0/addressDetail/latitude").toString());
+        location.put("longitude", event.at("/services/0/addressDetail/longitude").toString());
+        responseMessage.set("location", location);
+        return responseMessage;
+    }
+
+    private JsonNode createResponseMessageForAssignee(JsonNode event, JsonNode assignee) {
+        ObjectNode responseMessage = objectMapper.createObjectNode();
+        responseMessage.put("type", "text");
+        String serviceRequestId = event.at("/services/0/serviceRequestId").asText();
+        String serviceCode = event.at("/services/0/serviceCode").asText();
+
+        String message = "";
+        message += "Hey " + assignee.at("/name").asText() + ",";
+        message += "You have been assigned a new complaint to resolve.";
+        message += "\nComplaint Number : " + serviceRequestId;
+        message += "\nCategory : " + localizationService.getMessageForCode(complaintCategoryLocalizationPrefix + serviceCode);
+
+        responseMessage.put("text", message);
+
+        return responseMessage;
+    }
+
 
     private JsonNode createResponseMessage(JsonNode event) throws IOException {
         String status = event.at("/services/0/status").asText();
@@ -110,13 +194,13 @@ public class PGRStatusUpdateEventFormatter implements SystemInitiatedEventFormat
         String serviceRequestId = event.at("/services/0/serviceRequestId").asText();
         String serviceCode = event.at("/services/0/serviceCode").asText();
 
-        JsonNode assignee = getAssignee(event);
-        String assigneeMobileNumber = assignee.at("/mobileNumber").asText();
+//        JsonNode assignee = getAssignee(event);
+//        String assigneeMobileNumber = assignee.at("/mobileNumber").asText();
 
         String message = "Your complaint has been assigned.";
         message += "\nComplaint Number : " + serviceRequestId;
-        message += "\nCategory : " + serviceCode;
-        message += "\nAssignee Mobile Number : " + assigneeMobileNumber;
+        message += "\nCategory : " + localizationService.getMessageForCode(complaintCategoryLocalizationPrefix + serviceCode);
+//        message += "\nAssignee Mobile Number : " + assigneeMobileNumber;
 
         ObjectNode responseMessage = objectMapper.createObjectNode();
 

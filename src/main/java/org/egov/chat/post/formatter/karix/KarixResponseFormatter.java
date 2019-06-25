@@ -32,6 +32,8 @@ public class KarixResponseFormatter implements ResponseFormatter {
 
     String karixAttachmentMessageRequestBody = "{\"message\":{\"channel\":\"WABA\",\"content\":{\"type\":\"ATTACHMENT\",\"attachment\":{\"type\":\"image\",\"caption\":\"\",\"mimeType\":\"\",\"attachmentData\":\"\"}},\"recipient\":{\"to\":\"\",\"recipient_type\":\"individual\",\"reference\":{\"cust_ref\":\"Some Customer Ref\",\"messageTag1\":\"Message Tag Val1\",\"conversationId\":\"Some Optional Conversation ID\"}},\"sender\":{\"from\":\"\"},\"preferences\":{\"webHookDNId\":\"1001\"}},\"metaData\":{\"version\":\"v1.0.9\"}}";
 
+    String karixLocationRequestBody = "{\"message\":{\"channel\":\"WABA\",\"content\":{\"type\":\"location\",\"location\":{\"latitude\":\"\",\"longitude\":\"\"}},\"recipient\":{\"to\":\"\",\"recipient_type\":\"individual\"},\"sender\":{\"from\":\"\"}},\"metaData\":{\"version\":\"v1.0.9\"}}";
+
     @Autowired
     private KafkaStreamsConfig kafkaStreamsConfig;
     @Autowired
@@ -82,6 +84,8 @@ public class KarixResponseFormatter implements ResponseFormatter {
 
         List<JsonNode> karixRequests = new ArrayList<>();
 
+        log.debug("Response Type : " + type);
+
         DocumentContext request = null;
         if(type.equalsIgnoreCase("text")) {
             request = JsonPath.parse(karixTextMessageRequestBody);
@@ -112,6 +116,13 @@ public class KarixResponseFormatter implements ResponseFormatter {
                 if(response.at(ChatNodeJsonPointerConstants.responseText) != null)
                     karixRequests.add(createTextNodeForAttachment(response));
             }
+        } else if(type.equalsIgnoreCase("location")) {
+            request = JsonPath.parse(karixLocationRequestBody);
+            request.set("$.message.content.type", type);
+
+            DocumentContext location = JsonPath.parse(response.at(ChatNodeJsonPointerConstants.locationJson).toString());
+
+            request.set("$.message.content.location", location.json());
         }
 
         request.set("$.message.recipient.to", "91" + userMobileNumber);

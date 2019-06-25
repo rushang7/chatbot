@@ -8,6 +8,7 @@ import com.jayway.jsonpath.JsonPath;
 import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONArray;
 import org.egov.chat.service.restendpoint.RestEndpoint;
+import org.egov.chat.xternal.util.LocalizationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -34,9 +35,13 @@ public class PGRComplaintTrack implements RestEndpoint {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private LocalizationService localizationService;
+
+    private String complaintCategoryLocalizationPrefix = "pgr.complaint.category.";
+
     @Value("${egov.external.host}")
     private String egovExternalHost;
-
     @Value("${pgr.service.host}")
     private String pgrHost;
     @Value("${pgr.service.search.path}")
@@ -103,7 +108,8 @@ public class PGRComplaintTrack implements RestEndpoint {
                         message += "\n";
 
                     message += "Complaint Number : " + documentContext.read("$.services.[" + i + "].serviceRequestId");
-                    message += "\nCategory : " + documentContext.read("$.services.[" + i + "].serviceCode");
+                    message += "\nCategory : ";
+                    message += localizationService.getMessageForCode(complaintCategoryLocalizationPrefix + documentContext.read("$.services.[" + i + "].serviceCode"));
                     Date createdDate = new Date((long) documentContext.read("$.services.[" + i + "].auditDetails.createdTime"));
                     message += "\nFiled Date : " + getDateFromTimestamp(createdDate);
                     message += "\nCurrent Status : " + documentContext.read("$.services.[" + i + "].status");

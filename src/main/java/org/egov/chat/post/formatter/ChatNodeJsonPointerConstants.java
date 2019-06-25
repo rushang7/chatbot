@@ -8,6 +8,8 @@ public class ChatNodeJsonPointerConstants {
 
     public static final String attachmentFileStoreId = "/response/attachment/fileStoreId";
 
+    public static final String locationJson = "/response/location";
+
     public static final String toMobileNumber = "/user/mobileNumber";
 
     public static final String tenantId = "/tenantId";
