@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
@@ -160,7 +159,7 @@ public class PGRStatusUpdateEventFormatter implements SystemInitiatedEventFormat
         return responseMessage;
     }
 
-    private JsonNode createResponseMessageForAssignee(JsonNode event, JsonNode assignee) {
+    private JsonNode createResponseMessageForAssignee(JsonNode event, JsonNode assignee) throws UnsupportedEncodingException {
         ObjectNode responseMessage = objectMapper.createObjectNode();
         responseMessage.put("type", "text");
         String serviceRequestId = event.at("/services/0/serviceRequestId").asText();
@@ -168,9 +167,10 @@ public class PGRStatusUpdateEventFormatter implements SystemInitiatedEventFormat
 
         String message = "";
         message += "Hey " + assignee.at("/name").asText() + ",";
-        message += "You have been assigned a new complaint to resolve.";
+        message += "\nYou have been assigned a new complaint to resolve.";
         message += "\nComplaint Number : " + serviceRequestId;
         message += "\nCategory : " + localizationService.getMessageForCode(complaintCategoryLocalizationPrefix + serviceCode);
+        message += "\n" + makeEmployeeURLForComplaint(serviceRequestId);
 
         responseMessage.put("text", message);
 
@@ -194,13 +194,13 @@ public class PGRStatusUpdateEventFormatter implements SystemInitiatedEventFormat
         String serviceRequestId = event.at("/services/0/serviceRequestId").asText();
         String serviceCode = event.at("/services/0/serviceCode").asText();
 
-//        JsonNode assignee = getAssignee(event);
-//        String assigneeMobileNumber = assignee.at("/mobileNumber").asText();
+        JsonNode assignee = getAssignee(event);
+        String assigneeMobileNumber = assignee.at("/mobileNumber").asText();
 
         String message = "Your complaint has been assigned.";
         message += "\nComplaint Number : " + serviceRequestId;
         message += "\nCategory : " + localizationService.getMessageForCode(complaintCategoryLocalizationPrefix + serviceCode);
-//        message += "\nAssignee Mobile Number : " + assigneeMobileNumber;
+        message += "\nAssignee Mobile Number : " + assigneeMobileNumber;
 
         ObjectNode responseMessage = objectMapper.createObjectNode();
 
@@ -234,10 +234,10 @@ public class PGRStatusUpdateEventFormatter implements SystemInitiatedEventFormat
         String serviceRequestId = event.at("/services/0/serviceRequestId").asText();
         String serviceCode = event.at("/services/0/serviceCode").asText();
 
-        String message = "Your complaint has been assigned.";
+        String message = "Your complaint has been resolved.";
         message += "\nComplaint Number : " + serviceRequestId;
-        message += "\nCategory : " + serviceCode;
-        message += "\nYou can rate the service here : " + makeURLForComplaint(serviceRequestId);
+        message += "\nCategory : " + localizationService.getMessageForCode(complaintCategoryLocalizationPrefix + serviceCode);
+        message += "\nYou can rate the service here : " + makeCitizenURLForComplaint(serviceRequestId);
 
         ObjectNode responseMessage = objectMapper.createObjectNode();
 
@@ -247,9 +247,15 @@ public class PGRStatusUpdateEventFormatter implements SystemInitiatedEventFormat
         return responseMessage;
     }
 
-    private String makeURLForComplaint(String serviceRequestId) throws UnsupportedEncodingException {
+    private String makeCitizenURLForComplaint(String serviceRequestId) throws UnsupportedEncodingException {
         String encodedPath = URLEncoder.encode( serviceRequestId, "UTF-8" );
         String url = egovExternalHost + "/citizen/complaint-details/" + encodedPath;
+        return url;
+    }
+
+    private String makeEmployeeURLForComplaint(String serviceRequestId) throws UnsupportedEncodingException {
+        String encodedPath = URLEncoder.encode( serviceRequestId, "UTF-8" );
+        String url = egovExternalHost + "/employee/complaint-details/" + encodedPath;
         return url;
     }
 
