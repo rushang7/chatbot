@@ -53,7 +53,7 @@ public class WaterSewerageEventFormatter implements SystemInitiatedEventFormatte
                 return createChatNodes(event);
             } catch (Exception e) {
                 log.error(e.getMessage());
-                return null;
+                return Collections.emptyList();
             }
         }).to(outputTopic, Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));
 
