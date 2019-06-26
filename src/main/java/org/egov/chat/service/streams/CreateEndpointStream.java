@@ -2,7 +2,6 @@ package org.egov.chat.service.streams;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -17,6 +16,7 @@ import org.egov.chat.service.restendpoint.RestAPI;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.Properties;
 
 @Slf4j
@@ -43,7 +43,7 @@ public class CreateEndpointStream extends CreateStream {
         KStream<String, JsonNode> answerKStream = builder.stream(inputTopic, Consumed.with(Serdes.String(),
                 kafkaStreamsConfig.getJsonSerde()));
 
-        answerKStream.mapValues(chatNode -> {
+        answerKStream.flatMapValues(chatNode -> {
             try {
                 ObjectNode responseMessage = restAPI.makeRestEndpointCall(config, chatNode);
 
@@ -52,10 +52,10 @@ public class CreateEndpointStream extends CreateStream {
                 String conversationId = chatNode.at(JsonPointerNameConstants.conversationId).asText();
                 conversationStateRepository.markConversationInactive(conversationId);
 
-                return chatNode;
+                return Collections.singletonList(chatNode);
             } catch (Exception e) {
                 log.error(e.getMessage());
-                return null;
+                return Collections.emptyList();
             }
         }).to(sendMessageTopic, Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));
 

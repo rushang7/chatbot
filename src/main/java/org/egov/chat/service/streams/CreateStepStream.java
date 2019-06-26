@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.Properties;
 
 @Component
@@ -51,21 +52,21 @@ public class CreateStepStream extends CreateStream {
                 (key, value) -> true
         );
 
-        branches[0].mapValues(chatNode -> {
+        branches[0].flatMapValues(chatNode -> {
             try {
                 chatNode = answerExtractor.extractAnswer(config, chatNode);
 
                 if(chatNode.get("reQuestion") != null && chatNode.get("reQuestion").asBoolean()) {
                     kafkaTemplate.send(questionTopic, chatNode);
-                    return null;
+                    return Collections.emptyList();
                 }
 
                 answerStore.saveAnswer(config, chatNode);
 
-                return chatNode;
+                return Collections.singletonList(chatNode);
             } catch (Exception e) {
                 log.error(e.getMessage());
-                return null;
+                return Collections.emptyList();
             }
         }).to(answerOutputTopic, Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));
 
@@ -76,6 +77,5 @@ public class CreateStepStream extends CreateStream {
         log.info("Step Stream started : " + streamName + ", from : " + answerInputTopic + ", to : " + answerOutputTopic +
                 " OR to : " + questionTopic);
     }
-
 
 }

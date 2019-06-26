@@ -12,12 +12,11 @@ import org.apache.kafka.streams.kstream.Produced;
 import org.egov.chat.config.ApplicationProperties;
 import org.egov.chat.config.KafkaStreamsConfig;
 import org.egov.chat.config.TenantIdWhatsAppNumberMapping;
-import org.egov.chat.pre.authorization.UserService;
 import org.egov.chat.pre.config.JsonPointerNameConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
+import java.util.Collections;
 import java.util.Properties;
 
 @Slf4j
@@ -42,14 +41,14 @@ public class TenantIdEnricher {
         KStream<String, JsonNode> messagesKStream = builder.stream(inputTopic, Consumed.with(Serdes.String(),
                 kafkaStreamsConfig.getJsonSerde()));
 
-        messagesKStream.mapValues(chatNode -> {
+        messagesKStream.flatMapValues(chatNode -> {
             try {
                 String recipientNumber = chatNode.at(JsonPointerNameConstants.recipientNumber).asText();
                 ((ObjectNode) chatNode).put("tenantId",  tenantIdWhatsAppNumberMapping.getTenantIdForNumber(recipientNumber));
-                return chatNode;
+                return Collections.singletonList(chatNode);
             } catch (Exception e) {
                 log.error(e.getMessage());
-                return null;
+                return Collections.emptyList();
             }
         }).to(outputTopic, Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));
 

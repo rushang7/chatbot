@@ -10,11 +10,12 @@ import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
 import org.egov.chat.config.JsonPointerNameConstants;
 import org.egov.chat.config.KafkaStreamsConfig;
-import org.egov.chat.service.QuestionGenerator;
 import org.egov.chat.repository.ConversationStateRepository;
+import org.egov.chat.service.QuestionGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.Properties;
 
 @Component
@@ -41,7 +42,7 @@ public class CreateStream {
         KStream<String, JsonNode> questionKStream = builder.stream(questionTopic, Consumed.with(Serdes.String(),
                 kafkaStreamsConfig.getJsonSerde()));
 
-        questionKStream.mapValues(chatNode -> {
+        questionKStream.flatMapValues(chatNode -> {
             try {
                 JsonNode nodeWithQuestion = questionGenerator.getQuestion(config, chatNode);
 
@@ -50,10 +51,10 @@ public class CreateStream {
                 conversationStateRepository.updateConversationStateForId(config.get("name").asText(),
                         questionDetails, chatNode.at(JsonPointerNameConstants.conversationId).asText());
 
-                return nodeWithQuestion;
+                return Collections.singletonList(nodeWithQuestion);
             } catch (Exception e) {
                 log.error(e.getMessage());
-                return null;
+                return Collections.emptyList();
             }
         }).to(sendMessageTopic, Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));
 

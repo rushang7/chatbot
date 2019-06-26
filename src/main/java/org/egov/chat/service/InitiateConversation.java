@@ -4,26 +4,20 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.common.serialization.Deserializer;
-import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.common.serialization.Serializer;
-import org.apache.kafka.connect.json.JsonDeserializer;
-import org.apache.kafka.connect.json.JsonSerializer;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
-import org.egov.chat.config.ApplicationProperties;
 import org.egov.chat.config.JsonPointerNameConstants;
+import org.egov.chat.config.KafkaStreamsConfig;
 import org.egov.chat.models.ConversationState;
 import org.egov.chat.repository.ConversationStateRepository;
-import org.egov.chat.config.KafkaStreamsConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
+import java.util.Collections;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -47,12 +41,12 @@ public class InitiateConversation {
         KStream<String, JsonNode> messagesKStream = builder.stream(inputTopic, Consumed.with(Serdes.String(),
                 kafkaStreamsConfig.getJsonSerde()));
 
-        messagesKStream.mapValues(chatNode -> {
+        messagesKStream.flatMapValues(chatNode -> {
             try {
-                return createOrContinueConversation(chatNode);
+                return Collections.singletonList(createOrContinueConversation(chatNode));
             } catch (Exception e) {
                 log.error(e.getMessage());
-                return null;
+                return Collections.emptyList();
             }
         }).to(outputTopic, Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));
 

@@ -16,6 +16,7 @@ import org.egov.chat.pre.formatter.RequestFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.Properties;
 
 @Slf4j
@@ -89,12 +90,12 @@ public class KarixRequestFormatter implements RequestFormatter {
                 (key, value) -> true
         );
 
-        branches[0].mapValues(request -> {
+        branches[0].flatMapValues(request -> {
             try {
-                return getTransformedRequest(request);
+                return Collections.singletonList(getTransformedRequest(request));
             } catch (Exception e) {
                 log.error(e.getMessage());
-                return null;
+                return Collections.emptyList();
             }
         }).to(outputTopic, Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));
 

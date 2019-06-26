@@ -12,14 +12,15 @@ import org.apache.kafka.streams.kstream.Predicate;
 import org.apache.kafka.streams.kstream.Produced;
 import org.egov.chat.config.JsonPointerNameConstants;
 import org.egov.chat.config.KafkaStreamsConfig;
+import org.egov.chat.config.graph.TopicNameGetter;
 import org.egov.chat.service.AnswerExtractor;
 import org.egov.chat.service.AnswerStore;
-import org.egov.chat.config.graph.TopicNameGetter;
 import org.egov.chat.service.validation.Validator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
@@ -61,16 +62,16 @@ public class CreateBranchStream extends CreateStream {
         for(int i = 1; i < kStreamBranches.length; i++) {
             String targetNode = config.get(branchNames.get(i - 1)).asText();
             String targetTopicName = topicNameGetter.getQuestionTopicNameForNode(targetNode);
-            kStreamBranches[i].mapValues(chatNode -> {
+            kStreamBranches[i].flatMapValues(chatNode -> {
                 try {
                     chatNode = answerExtractor.extractAnswer(config, chatNode);
 
                     answerStore.saveAnswer(config, chatNode);
 
-                    return chatNode;
+                    return Collections.singletonList(chatNode);
                 } catch (Exception e) {
                     log.error(e.getMessage());
-                    return null;
+                    return Collections.emptyList();
                 }
             }).to(targetTopicName, Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));
 
