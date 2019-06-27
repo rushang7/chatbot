@@ -56,6 +56,8 @@ public class PGRStatusUpdateEventFormatter implements SystemInitiatedEventFormat
 
     private String userServiceSearchRequest = "{\"RequestInfo\":{},\"tenantId\":\"\",\"id\":[\"\"]}";
 
+    private String shareMessage = "Please share this with your friends and family : https://api.whatsapp.com/send?phone=919845315868&text=Hi";
+
     @Override
     public String getStreamName() {
         return "pgr-update-formatter";
@@ -103,9 +105,19 @@ public class PGRStatusUpdateEventFormatter implements SystemInitiatedEventFormat
 
         if(status.equalsIgnoreCase("assigned")) {
             chatNodes.addAll(createChatNodeForAssignee(event));
+        } else if(status.equalsIgnoreCase("resolved")) {
+            chatNodes.add(createShareNode(chatNode));
         }
 
         return chatNodes;
+    }
+
+    private JsonNode createShareNode(ObjectNode chatNode) {
+        ObjectNode shareNode = chatNode.deepCopy();
+
+        ((ObjectNode) shareNode.get("response")).put("text", shareMessage);
+
+        return shareNode;
     }
 
     private List<JsonNode> createChatNodeForAssignee(JsonNode event) throws IOException {
