@@ -4,13 +4,12 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.egov.chat.models.ConversationState;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.List;
-
-import static org.junit.Assert.*;
 
 @Slf4j
 public class FixedSetValuesTest {
@@ -28,5 +27,14 @@ public class FixedSetValuesTest {
         log.info(String.valueOf(validValues));
 
     }
+
+    @Test
+    public void testIntegerValuesForDifferentLocales() throws ParseException {
+        NumberFormat nf = NumberFormat.getInstance();
+        System.out.println(nf.parse("३३"));
+        System.out.println(Integer.parseInt("३३"));
+    }
+
+
 
 }

@@ -11,7 +11,7 @@ typeOfValues: FixedSetValues
 message : "What is the type of complaint?"
 
 values :
-  batchSize : 9
+  batchSize : 10
   class : org.egov.chat.xternal.valuefetch.ComplainTypeValueFetcher
   params :
     tenantId : /tenantId

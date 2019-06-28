@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.extern.slf4j.Slf4j;
 import me.xdrop.fuzzywuzzy.FuzzySearch;
 import org.egov.chat.config.JsonPointerNameConstants;
 import org.egov.chat.models.ConversationState;
@@ -15,9 +16,11 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.List;
 
+@Slf4j
 @Component
 public class FixedSetValues {
 
+    private String nextKeywordSymbol = "*";
     private String nextKeyword = "Next";
 
     @Autowired
@@ -61,11 +64,18 @@ public class FixedSetValues {
         Integer upperLimit = newOffset + batchSize < allValues.size() ? newOffset + batchSize : allValues.size();
 
         for(int i = newOffset; i < upperLimit; i++) {
-            nextSet.add(allValues.get(i));
+            ObjectNode value = objectMapper.createObjectNode();
+            value.put("index", i + 1);
+            value.set("value", allValues.get(i));
+            nextSet.add(value);
         }
 
-        if(upperLimit < allValues.size())
-            nextSet.add(nextKeyword);
+        if(upperLimit < allValues.size()) {
+            ObjectNode value = objectMapper.createObjectNode();
+            value.put("key", nextKeywordSymbol);
+            value.put("value", nextKeyword);
+            nextSet.add(value);
+        }
 
         ( (ObjectNode) questionDetails ).put("offset", newOffset);
         ( (ObjectNode) questionDetails ).set("askedValues", nextSet);
@@ -80,21 +90,25 @@ public class FixedSetValues {
         ConversationState conversationState = getConversationStateForChat(chatNode);
         JsonNode questionDetails = conversationState.getQuestionDetails();
 
-        List<String> validValues = null;
-
+        List<String> validValues;
         try {
-            if(displayValuesAsOptions)
-                validValues = objectMapper.readValue(questionDetails.get("askedValues").toString(), List.class);
-            else
-                validValues = objectMapper.readValue(questionDetails.get("allValues").toString(), List.class);
+            validValues = objectMapper.readValue(questionDetails.get("allValues").toString(), List.class);
         } catch (IOException e) {
             return null;
         }
 
+        if(displayValuesAsOptions) {
+            Integer offset = questionDetails.get("offset").asInt();
+            Integer batchSize = questionDetails.get("batchSize").asInt();
+            validValues = validValues.subList(0, Math.min(offset + batchSize, validValues.size()));
+        }
 
-        Integer answerIndex;
+        Integer answerIndex = null;
+        Boolean reQuestion = false;
         if(displayValuesAsOptions && checkIfAnswerIsIndex(answer)) {
             answerIndex = Integer.parseInt(answer) - 1;
+        } else if(displayValuesAsOptions && (answer.equalsIgnoreCase(nextKeyword) || answer.equalsIgnoreCase(nextKeywordSymbol))) {
+            reQuestion = true;
         } else {
             Integer highestFuzzyScoreMatch = 0;
             answerIndex = 0;
@@ -107,11 +121,14 @@ public class FixedSetValues {
             }
         }
 
-        String finalAnswer = validValues.get(answerIndex);
+        log.debug("Answer Index : " + answerIndex);
 
-        if(finalAnswer.equalsIgnoreCase(nextKeyword)) {
+        String finalAnswer = null;
+        if(reQuestion) {
             ( (ObjectNode) chatNode).put("reQuestion", true);
+            finalAnswer = nextKeyword;
         } else {
+            finalAnswer = validValues.get(answerIndex);
             finalAnswer = valueFetcher.getCodeForValue(config, chatNode, finalAnswer);
         }
 
@@ -146,16 +163,18 @@ public class FixedSetValues {
         List<String> validValues;
 
         try {
-            if(displayValuesAsOptions)
-                validValues = objectMapper.readValue(questionDetails.get("askedValues").toString(), List.class);
-            else
-                validValues = objectMapper.readValue(questionDetails.get("allValues").toString(), List.class);
+            validValues = objectMapper.readValue(questionDetails.get("allValues").toString(), List.class);
         } catch (IOException e) {
             return false;
         }
 
         if(displayValuesAsOptions && checkIfAnswerIsIndex(answer)) {
+            Integer offset = questionDetails.get("offset").asInt();
+            Integer batchSize = questionDetails.get("batchSize").asInt();
+            validValues = validValues.subList(0, Math.min(offset + batchSize, validValues.size()));
             return checkIfIndexIsValid(answer, validValues);
+        } else if(displayValuesAsOptions && (answer.equalsIgnoreCase(nextKeyword) || answer.equalsIgnoreCase(nextKeywordSymbol))) {
+            return true;
         } else {
             return fuzzyMatchAnswerWithValidValues(answer, validValues, config);
         }
