@@ -72,7 +72,7 @@ public class FixedSetValues {
 
         if(upperLimit < allValues.size()) {
             ObjectNode value = objectMapper.createObjectNode();
-            value.put("key", nextKeywordSymbol);
+            value.put("index", nextKeywordSymbol);
             value.put("value", nextKeyword);
             nextSet.add(value);
         }
