@@ -1,6 +1,7 @@
 package org.egov.chat.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +27,9 @@ import java.util.UUID;
 public class InitiateConversation {
 
     private String streamName = "initiate-conversation";
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Autowired
     private KafkaStreamsConfig kafkaStreamsConfig;
@@ -69,12 +73,14 @@ public class InitiateConversation {
         chatNode = ((ObjectNode) chatNode).set("conversationId",
                 TextNode.valueOf(conversationState.getConversationId()));
 
+        chatNode = ((ObjectNode) chatNode).set("conversationState", objectMapper.valueToTree(conversationState));
+
         return chatNode;
     }
 
     private ConversationState createNewConversationForUser(String userId) {
         String conversationId = UUID.randomUUID().toString();
-        return ConversationState.builder().conversationId(conversationId).userId(userId).active(true).build();
+        return ConversationState.builder().conversationId(conversationId).userId(userId).active(true).locale("en_IN").build();
     }
 
 }

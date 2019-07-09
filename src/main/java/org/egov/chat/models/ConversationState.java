@@ -19,4 +19,6 @@ public class ConversationState {
     private boolean active;
 
     private JsonNode questionDetails;
+
+    private String locale;
 }
