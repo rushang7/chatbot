@@ -11,6 +11,9 @@ import org.egov.chat.service.valuefetch.ValueFetcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
+import java.util.List;
+
 @Service
 @Slf4j
 public class QuestionGenerator {
@@ -25,12 +28,15 @@ public class QuestionGenerator {
     private ConversationStateRepository conversationStateRepository;
 
     public JsonNode getQuestion(JsonNode config, JsonNode chatNode) {
-        String question = getQuesitonForConfig(config);
-        question += getOptionsForConfig(config, chatNode);
+        List<String> localizationCodes = Collections.singletonList(getQuesitonForConfig(config));
+        ArrayNode localizationCodesArrayNode = objectMapper.valueToTree(localizationCodes);
+
+        String question = getOptionsForConfig(config, chatNode);
 
         ObjectNode response = objectMapper.createObjectNode();
         response.put("type", "text");
         response.put("text", question);
+        response.set("localizationCodes", localizationCodesArrayNode);
 
         ((ObjectNode) chatNode).set("response", response);
         return chatNode;

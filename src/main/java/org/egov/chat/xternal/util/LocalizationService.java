@@ -46,7 +46,7 @@ public class LocalizationService {
 
         for(String locale : supportedLocales) {
             UriComponentsBuilder uriComponents = UriComponentsBuilder.fromUriString(localizationHost + localizationSearchPath);
-            uriComponents.queryParam("supportedLocales", locale);
+            uriComponents.queryParam("locale", locale);
             uriComponents.queryParam("tenantId", stateLevelTenantId);
 
             ObjectNode localizationData = restTemplate.postForObject(uriComponents.buildAndExpand().toUriString(),

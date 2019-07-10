@@ -5,6 +5,6 @@ nodeType : step
 optional : false
 validationRequired: true
 
-message : "Please share your location"
+message : chatbot.messages.pgrCreateLocation
 
 type : location

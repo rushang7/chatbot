@@ -5,4 +5,4 @@ optional : true
 
 type : photo
 
-message : "Please upload the photo?"
+message : chatbot.messages.pgrCreatePhoto

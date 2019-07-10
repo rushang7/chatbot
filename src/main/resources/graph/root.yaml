@@ -1,6 +1,6 @@
 name : root
 nodeType : branch
-message : " Hi,\nWhat would you like to do :"
+message : chatbot.messages.welcomeMessage
 
 validationRequired: true
 typeOfValues: FixedSetValues
@@ -10,9 +10,6 @@ displayValuesAsOptions : true
 matchAnswerThreshold : 70
 
 type : text
-
-question : root.question
-input : root.input
 
 File a complaint : pgr.create.tenantId
 Track complaint : pgr.track.end
