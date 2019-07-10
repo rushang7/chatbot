@@ -5,7 +5,7 @@ optional : false
 
 type: text
 
-message: "Which city?"
+message: chatbot.messages.pgrCreateTenantId
 
 validationRequired : true
 typeOfValues : FixedSetValues

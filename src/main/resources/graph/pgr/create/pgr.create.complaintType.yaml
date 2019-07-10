@@ -8,7 +8,7 @@ type : text
 validationRequired: true
 typeOfValues: FixedSetValues
 
-message : "What is the type of complaint?"
+message : chatbot.messages.pgrCreateComplaintType
 
 values :
   batchSize : 10

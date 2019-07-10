@@ -4,6 +4,6 @@ nodeType : step
 
 optional : true
 
-message : "Could you please enter the address?"
+message : chatbot.messages.pgrCreateAddress
 
 type : text

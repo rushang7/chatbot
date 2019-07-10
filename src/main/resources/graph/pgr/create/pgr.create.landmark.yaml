@@ -6,4 +6,4 @@ optional : true
 
 type : text
 
-message : "Could you please enter the landmark?"
+message : chatbot.messages.pgrCreateLandmark

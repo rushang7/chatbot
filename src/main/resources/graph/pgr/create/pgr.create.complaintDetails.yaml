@@ -4,6 +4,6 @@ nodeType : step
 optional : true
 validationRequired : false
 
-message : "If you wish you can mention any addtional details?"
+message : chatbot.messages.pgrCreateAdditionalDetails
 
 type : text

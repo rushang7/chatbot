@@ -14,6 +14,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.annotation.PostConstruct;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -32,47 +33,62 @@ public class LocalizationService {
     private String localizationSearchPath;
     @Value("${state.level.tenant.id}")
     private String stateLevelTenantId;
+    @Value("#{'${supported.locales}'.split(',')}")
+    private List<String> supportedLocales;
 
-    private String locale = "en_IN";
-
-    private Map<String,String>  codeToMessageMapping;
-    private Map<String,String>  messageToCodeMapping;
+    private Map<String, Map<String,String>>  codeToMessageMapping;
+    private Map<String, Map<String,String>>  messageToCodeMapping;
 
     @PostConstruct
     public void init() {
-        UriComponentsBuilder uriComponents = UriComponentsBuilder.fromUriString(localizationHost + localizationSearchPath);
-        uriComponents.queryParam("locale", locale);
-        uriComponents.queryParam("tenantId", stateLevelTenantId);
-
-        ObjectNode localizationData = restTemplate.postForObject(uriComponents.buildAndExpand().toUriString(),
-                objectMapper.createObjectNode(), ObjectNode.class);
-
-        ArrayNode localizationMessages = (ArrayNode) localizationData.get("messages");
-
-        initializeMaps(localizationMessages);
-    }
-
-    private void initializeMaps(ArrayNode localizationMessages) {
         codeToMessageMapping = new HashMap<>();
         messageToCodeMapping = new HashMap<>();
+
+        for(String locale : supportedLocales) {
+            UriComponentsBuilder uriComponents = UriComponentsBuilder.fromUriString(localizationHost + localizationSearchPath);
+            uriComponents.queryParam("locale", locale);
+            uriComponents.queryParam("tenantId", stateLevelTenantId);
+
+            ObjectNode localizationData = restTemplate.postForObject(uriComponents.buildAndExpand().toUriString(),
+                    objectMapper.createObjectNode(), ObjectNode.class);
+
+            ArrayNode localizationMessages = (ArrayNode) localizationData.get("messages");
+
+            initializeMaps(localizationMessages, locale);
+        }
+    }
+
+    private void initializeMaps(ArrayNode localizationMessages, String locale) {
+        Map<String, String> codeToMessageMappingForLocale = new HashMap<>();
+        Map<String, String> messageToCodeMappingForLocale = new HashMap<>();
 
         for(JsonNode localizationMessage : localizationMessages) {
             String code = localizationMessage.get("code").asText();
             String message = localizationMessage.get("message").asText();
 
-            codeToMessageMapping.put(code, message);
-            messageToCodeMapping.put(message, code);
+            codeToMessageMappingForLocale.put(code, message);
+            messageToCodeMappingForLocale.put(message, code);
         }
 
-        log.info("codeToMessageMapping initialized with : " + codeToMessageMapping.size() + " values");
-        log.info("messageToCodeMapping initialized with : " + messageToCodeMapping.size() + " values");
+        codeToMessageMapping.put(locale, codeToMessageMappingForLocale);
+        messageToCodeMapping.put(locale, messageToCodeMappingForLocale);
     }
 
     public String getMessageForCode(String code) {
-        return codeToMessageMapping.get(code);
+        return getMessageForCode(code, "en_IN");
     }
 
+    public String getMessageForCode(String code, String locale) {
+        return codeToMessageMapping.get(locale).get(code);
+    }
+
+    @Deprecated
     public String getCodeForMessage(String message) {
-        return messageToCodeMapping.get(message);
+        return getCodeForMessage(message, "en_IN");
+    }
+
+    @Deprecated
+    public String getCodeForMessage(String message, String locale) {
+        return messageToCodeMapping.get(locale).get(message);
     }
 }

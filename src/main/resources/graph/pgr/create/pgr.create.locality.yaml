@@ -9,7 +9,7 @@ validationRequired : true
 typeOfValues : FixedSetValues
 displayOptionsInExternalLink: true
 
-message : "Choose your locality from the page: "
+message : chatbot.messages.pgrCreateLocality
 
 values :
   class : org.egov.chat.xternal.valuefetch.LocalityValueFetcher
