@@ -34,6 +34,10 @@ public class KarixResponseFormatter implements ResponseFormatter {
 
     String karixLocationRequestBody = "{\"message\":{\"channel\":\"WABA\",\"content\":{\"type\":\"location\",\"location\":{\"latitude\":\"\",\"longitude\":\"\"}},\"recipient\":{\"to\":\"\",\"recipient_type\":\"individual\"},\"sender\":{\"from\":\"\"}},\"metaData\":{\"version\":\"v1.0.9\"}}";
 
+    String karixTemplateMessageRequestBody = "{\"message\":{\"channel\":\"WABA\",\"content\":{\"preview_url\":false,\"type\":\"TEMPLATE\",\"template\":{\"templateId\":\"OTPTEST\"}},\"recipient\":{\"to\":\"919428010077\",\"recipient_type\":\"individual\",\"reference\":{\"cust_ref\":\"Some Customer Ref\",\"messageTag1\":\"Message Tag Val1\",\"conversationId\":\"Some Optional Conversation ID\"}},\"sender\":{\"from\":\"919845315868\"},\"preferences\":{\"webHookDNId\":\"sandbox\"}},\"metaData\":{\"version\":\"v1.0.9\"}}";
+
+    String welcomeMessageTemplateId = "MSEVAWELCOME";
+
     @Autowired
     private KafkaStreamsConfig kafkaStreamsConfig;
     @Autowired
@@ -87,7 +91,11 @@ public class KarixResponseFormatter implements ResponseFormatter {
         log.debug("Response Type : " + type);
 
         DocumentContext request = null;
-        if(type.equalsIgnoreCase("text")) {
+        if(response.has("missedCall") && response.get("missedCall").asBoolean()) {
+            request = JsonPath.parse(karixTemplateMessageRequestBody);
+            request.set("$.message.content.template.templateId", welcomeMessageTemplateId);
+        }
+        else if(type.equalsIgnoreCase("text")) {
             request = JsonPath.parse(karixTextMessageRequestBody);
             request.set("$.message.content.type", type);
             request.set("$.message.content.text", response.at(ChatNodeJsonPointerConstants.responseText).asText());

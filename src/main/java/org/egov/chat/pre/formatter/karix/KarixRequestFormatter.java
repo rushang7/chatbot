@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import com.jayway.jsonpath.DocumentContext;
+import com.jayway.jsonpath.JsonPath;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -12,10 +14,12 @@ import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
 import org.egov.chat.config.KafkaStreamsConfig;
+import org.egov.chat.config.TenantIdWhatsAppNumberMapping;
 import org.egov.chat.pre.formatter.RequestFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Properties;
 
@@ -28,6 +32,9 @@ public class KarixRequestFormatter implements RequestFormatter {
     @Autowired
     private KafkaStreamsConfig kafkaStreamsConfig;
 
+    @Autowired
+    private TenantIdWhatsAppNumberMapping tenantIdWhatsAppNumberMapping;
+
     @Override
     public String getStreamName() {
         return "karix-request-transform";
@@ -35,23 +42,28 @@ public class KarixRequestFormatter implements RequestFormatter {
 
     @Override
     public boolean isValid(JsonNode inputRequest) {
-
         try {
+            if(checkForMissedCallNotification(inputRequest))
+                return true;
+
             String contentType = inputRequest.at(KairxJsonPointerConstants.contentType).asText();
             if(contentType.equalsIgnoreCase("text") || contentType.equalsIgnoreCase("location")) {
-
                 return true;
             }
-
         } catch (Exception e) {
-
+            log.error("Invalid request");
         }
-
         return false;
     }
 
     @Override
-    public JsonNode getTransformedRequest(JsonNode inputRequest) {
+    public JsonNode getTransformedRequest(JsonNode inputRequest) throws Exception {
+
+        boolean missedCall = checkForMissedCallNotification(inputRequest);
+        if(missedCall) {
+            inputRequest = makeNodeForMissedCallRequest(inputRequest);
+        }
+
         String inputMobile = inputRequest.at(KairxJsonPointerConstants.userMobileNumber).asText();
         String mobileNumber = inputMobile.substring(2, 2 + 10);
         ObjectNode user = objectMapper.createObjectNode();
@@ -74,7 +86,36 @@ public class KarixRequestFormatter implements RequestFormatter {
         chatNode.set("message", message);
         chatNode.set("recipient", recipient);
 
+        if(missedCall) {
+            chatNode.put("missedCall", true);
+        }
+
         return chatNode;
+    }
+
+    // TODO : set actual recipient number in input request not missed call number
+    private JsonNode makeNodeForMissedCallRequest(JsonNode inputRequest) throws IOException {
+        JsonNode body = inputRequest.get("body");
+        String recipientNumber = body.get("Callernumber").asText();
+        String userNumber = body.get("UserNumber").asText();
+
+        DocumentContext documentContext = JsonPath.parse("{\"channel\":\"WABA\",\"appDetails\":{\"type\":\"LIVE\"},\"events\":{\"eventType\":\"User initiated\",\"timestamp\":\"1561722407\",\"date\":\"2019-6-28\"},\"eventContent\":{\"message\":{\"from\":\"919428010077\",\"id\":\"ABEGkZQoAQB3Ago6kHmalneqdAmp\",\"text\":{\"body\":\"Hi\"},\"to\":\"919845315868\",\"contentType\":\"text\"}}}");
+        documentContext.set("$.eventContent.message.to", recipientNumber);
+        documentContext.set("$.eventContent.message.from", userNumber);
+
+        JsonNode inputRequestBody = objectMapper.readTree(documentContext.jsonString());
+        ( (ObjectNode) inputRequest).set("body", inputRequestBody);
+
+        return inputRequest;
+    }
+
+    private boolean checkForMissedCallNotification(JsonNode inputRequest) {
+        JsonNode body = inputRequest.get("body");
+        if(body.size() == 2) {
+            if(body.has("Callernumber") && body.has("UserNumber"))
+                return true;
+        }
+        return false;
     }
 
     @Override
