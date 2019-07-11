@@ -30,6 +30,7 @@ public class ConversationStateResultSetExtractor implements ResultSetExtractor<C
                     .activeNodeId(resultSet.getString("active_node_id"))
                     .questionDetails(getJsonValue((PGobject) resultSet.getObject("question_details")))
                     .active(resultSet.getBoolean("active"))
+                    .locale(resultSet.getString("locale"))
                     .build();
         return null;
     }
