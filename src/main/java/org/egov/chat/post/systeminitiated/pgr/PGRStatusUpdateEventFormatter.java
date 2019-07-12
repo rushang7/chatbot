@@ -105,8 +105,6 @@ public class PGRStatusUpdateEventFormatter implements SystemInitiatedEventFormat
 
         if(status.equalsIgnoreCase("assigned")) {
             chatNodes.addAll(createChatNodeForAssignee(event));
-        } else if(status.equalsIgnoreCase("resolved")) {
-            chatNodes.add(createShareNode(chatNode));
         }
 
         return chatNodes;
