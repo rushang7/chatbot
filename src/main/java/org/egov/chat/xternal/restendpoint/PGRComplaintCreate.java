@@ -51,8 +51,8 @@ public class PGRComplaintCreate implements RestEndpoint {
         String complaintDetails = params.get("pgr.create.complaintDetails").asText();
         DocumentContext userInfo = JsonPath.parse(params.get("userInfo").asText());
 
-        String location = params.get("pgr.create.location").asText();
-        ObjectNode locationNode = (ObjectNode) objectMapper.readTree(location);
+//        String location = params.get("pgr.create.location").asText();
+//        ObjectNode locationNode = (ObjectNode) objectMapper.readTree(location);
 
         DocumentContext request = JsonPath.parse(pgrCreateRequestBody);
 
@@ -60,8 +60,8 @@ public class PGRComplaintCreate implements RestEndpoint {
         request.set("$.RequestInfo.userInfo",  userInfo.json());
         request.set("$.services.[0].city", city);
         request.set("$.services.[0].tenantId", city);
-        request.set("$.services.[0].addressDetail.latitude", locationNode.get("latitude").asText());
-        request.set("$.services.[0].addressDetail.longitude", locationNode.get("longitude").asText());
+//        request.set("$.services.[0].addressDetail.latitude", locationNode.get("latitude").asText());
+//        request.set("$.services.[0].addressDetail.longitude", locationNode.get("longitude").asText());
         request.set("$.services.[0].addressDetail.city", city);
         request.set("$.services.[0].addressDetail.mohalla", locality);
         request.set("$.services.[0].serviceCode", complaintType);
