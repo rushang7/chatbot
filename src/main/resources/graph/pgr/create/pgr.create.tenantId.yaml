@@ -19,3 +19,5 @@ values :
 
 fuzzyMatchThreshold: 70
 matchAnswerThreshold: 90
+
+errorMessage: chatbot.messages.pgrCreateTenantIdError

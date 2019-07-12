@@ -1,6 +1,7 @@
 package org.egov.chat.service.streams;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -70,7 +71,10 @@ public class CreateStepStream extends CreateStream {
             }
         }).to(answerOutputTopic, Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));
 
-        branches[1].mapValues(value -> value).to(questionTopic, Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));
+        branches[1].mapValues(chatNode -> {
+            ( (ObjectNode) chatNode).put("errorMessage", true);
+            return chatNode;
+        }).to(questionTopic, Produced.with(Serdes.String(), kafkaStreamsConfig.getJsonSerde()));
 
         kafkaStreamsConfig.startStream(builder, streamConfiguration);
 
