@@ -34,7 +34,7 @@ public class KarixResponseFormatter implements ResponseFormatter {
 
     String karixLocationRequestBody = "{\"message\":{\"channel\":\"WABA\",\"content\":{\"type\":\"location\",\"location\":{\"latitude\":\"\",\"longitude\":\"\"}},\"recipient\":{\"to\":\"\",\"recipient_type\":\"individual\"},\"sender\":{\"from\":\"\"}},\"metaData\":{\"version\":\"v1.0.9\"}}";
 
-    String karixTemplateMessageRequestBody = "{\"message\":{\"channel\":\"WABA\",\"content\":{\"preview_url\":false,\"type\":\"TEMPLATE\",\"template\":{\"templateId\":\"OTPTEST\"}},\"recipient\":{\"to\":\"919428010077\",\"recipient_type\":\"individual\",\"reference\":{\"cust_ref\":\"Some Customer Ref\",\"messageTag1\":\"Message Tag Val1\",\"conversationId\":\"Some Optional Conversation ID\"}},\"sender\":{\"from\":\"919845315868\"},\"preferences\":{\"webHookDNId\":\"sandbox\"}},\"metaData\":{\"version\":\"v1.0.9\"}}";
+    String karixTemplateMessageRequestBody = "{\"message\":{\"channel\":\"WABA\",\"content\":{\"preview_url\":false,\"type\":\"TEMPLATE\",\"template\":{\"templateId\":\"MSEVAWELCOME\",\"parameterValues\":{}}},\"recipient\":{\"to\":\"919428010077\",\"recipient_type\":\"individual\",\"reference\":{\"cust_ref\":\"Some Customer Ref\",\"messageTag1\":\"Message Tag Val1\",\"conversationId\":\"Some Optional Conversation ID\"}},\"sender\":{\"from\":\"919845315868\"},\"preferences\":{\"webHookDNId\":\"sandbox\"}},\"metaData\":{\"version\":\"v1.0.9\"}}";
 
     String welcomeMessageTemplateId = "MSEVAWELCOME";
 
