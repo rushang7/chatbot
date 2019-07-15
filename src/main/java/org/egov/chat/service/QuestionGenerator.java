@@ -71,7 +71,15 @@ public class QuestionGenerator {
 
                 for(int i = 0; i < values.size(); i++) {
                     JsonNode value = values.get(i);
-                    options += "\n" + value.get("index").asText() + ". " + value.get("value").asText();
+                    options += "\n";
+                    if(config.get("values").isArray())
+                        options += "Type ";
+                    options += value.get("index").asText();
+                    if(config.get("values").isArray())
+                        options += " to ";
+                    else
+                        options += ". ";
+                    options += value.get("value").asText();
                 }
             } else {
 

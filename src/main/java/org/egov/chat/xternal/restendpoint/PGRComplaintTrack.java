@@ -18,12 +18,10 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
-import java.net.URI;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 @PropertySource("classpath:xternal.properties")
 @Component
@@ -86,7 +84,7 @@ public class PGRComplaintTrack implements RestEndpoint {
         return responseMessage;
     }
 
-    private ObjectNode makeMessageForResponse(ResponseEntity<ObjectNode> responseEntity) {
+    private ObjectNode makeMessageForResponse(ResponseEntity<ObjectNode> responseEntity) throws UnsupportedEncodingException {
 
         ObjectNode responseMessage = objectMapper.createObjectNode();
         responseMessage.put("type", "text");
@@ -103,7 +101,7 @@ public class PGRComplaintTrack implements RestEndpoint {
                 message += "Complaint Details :";
                 for (int i = 0; i < numberOfServices; i++) {
                     if(numberOfServices > 1)
-                        message += "\n*" + (i + 1) + ".* ";
+                        message += "\n\n*" + (i + 1) + ".* ";
                     else
                         message += "\n";
 
@@ -113,6 +111,10 @@ public class PGRComplaintTrack implements RestEndpoint {
                     Date createdDate = new Date((long) documentContext.read("$.services.[" + i + "].auditDetails.createdTime"));
                     message += "\nFiled Date : " + getDateFromTimestamp(createdDate);
                     message += "\nCurrent Status : " + documentContext.read("$.services.[" + i + "].status");
+
+                    String encodedPath = URLEncoder.encode( documentContext.read("$.services.[" + i + "].serviceRequestId"), "UTF-8" );
+                    String url = egovExternalHost + "/citizen/complaint-details/" + encodedPath;
+                    message += "\n" + url;
                 }
             } else {
                 message += "No complaints to display";
