@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import me.xdrop.fuzzywuzzy.FuzzySearch;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -35,6 +36,12 @@ public class FixedSetValuesTest {
         System.out.println(Integer.parseInt("३३"));
     }
 
-
+    @Test
+    public void testFuzzySearchMatch() {
+        int match = FuzzySearch.tokenSetRatio  ("gurudwara niai 1", "Gurudwara Niai Sahib Street 1");
+        log.info("Match : " + match);
+        match = FuzzySearch.tokenSortRatio  ("gurudwara niai 1", "Gurudwara Niai Sahib Street 1");
+        log.info("Match : " + match);
+    }
 
 }

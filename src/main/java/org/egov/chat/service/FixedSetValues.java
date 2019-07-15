@@ -20,7 +20,7 @@ import java.util.List;
 @Component
 public class FixedSetValues {
 
-    private String nextKeywordSymbol = "*";
+    private String nextKeywordSymbol = "0";
     private String nextKeyword = "Next";
 
     @Autowired
@@ -105,15 +105,15 @@ public class FixedSetValues {
 
         Integer answerIndex = null;
         Boolean reQuestion = false;
-        if(displayValuesAsOptions && checkIfAnswerIsIndex(answer)) {
-            answerIndex = Integer.parseInt(answer) - 1;
-        } else if(displayValuesAsOptions && (answer.equalsIgnoreCase(nextKeyword) || answer.equalsIgnoreCase(nextKeywordSymbol))) {
+        if(displayValuesAsOptions && (answer.equalsIgnoreCase(nextKeyword) || answer.equalsIgnoreCase(nextKeywordSymbol))) {
             reQuestion = true;
+        } else if(displayValuesAsOptions && checkIfAnswerIsIndex(answer)) {
+            answerIndex = Integer.parseInt(answer) - 1;
         } else {
             Integer highestFuzzyScoreMatch = 0;
             answerIndex = 0;
             for(int i = 0; i < validValues.size(); i++) {
-                Integer score = FuzzySearch.tokenSetRatio(validValues.get(i), answer);
+                Integer score = FuzzySearch.tokenSortRatio(validValues.get(i), answer);
                 if(score > highestFuzzyScoreMatch) {
                     highestFuzzyScoreMatch = score;
                     answerIndex = i;
@@ -194,7 +194,7 @@ public class FixedSetValues {
 
         Integer fuzzyMatchScore;
         for(String validValue : validValues) {
-            fuzzyMatchScore = FuzzySearch.tokenSetRatio(answer, validValue);
+            fuzzyMatchScore = FuzzySearch.tokenSortRatio(answer, validValue);
             if(fuzzyMatchScore >= matchScoreThreshold)
                 return true;
         }
