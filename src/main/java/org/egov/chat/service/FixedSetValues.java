@@ -113,7 +113,7 @@ public class FixedSetValues {
             Integer highestFuzzyScoreMatch = 0;
             answerIndex = 0;
             for(int i = 0; i < validValues.size(); i++) {
-                Integer score = FuzzySearch.tokenSortRatio(validValues.get(i), answer);
+                Integer score = FuzzySearch.partialRatio(validValues.get(i), answer);
                 if(score > highestFuzzyScoreMatch) {
                     highestFuzzyScoreMatch = score;
                     answerIndex = i;
@@ -167,14 +167,13 @@ public class FixedSetValues {
         } catch (IOException e) {
             return false;
         }
-
-        if(displayValuesAsOptions && checkIfAnswerIsIndex(answer)) {
+        if(displayValuesAsOptions && (answer.equalsIgnoreCase(nextKeyword) || answer.equalsIgnoreCase(nextKeywordSymbol))) {
+            return true;
+        } else if(displayValuesAsOptions && checkIfAnswerIsIndex(answer)) {
             Integer offset = questionDetails.get("offset").asInt();
             Integer batchSize = questionDetails.get("batchSize").asInt();
             validValues = validValues.subList(0, Math.min(offset + batchSize, validValues.size()));
             return checkIfIndexIsValid(answer, validValues);
-        } else if(displayValuesAsOptions && (answer.equalsIgnoreCase(nextKeyword) || answer.equalsIgnoreCase(nextKeywordSymbol))) {
-            return true;
         } else {
             return fuzzyMatchAnswerWithValidValues(answer, validValues, config);
         }
@@ -194,7 +193,7 @@ public class FixedSetValues {
 
         Integer fuzzyMatchScore;
         for(String validValue : validValues) {
-            fuzzyMatchScore = FuzzySearch.tokenSortRatio(answer, validValue);
+            fuzzyMatchScore = FuzzySearch.partialRatio(answer, validValue);
             if(fuzzyMatchScore >= matchScoreThreshold)
                 return true;
         }

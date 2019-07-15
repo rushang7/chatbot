@@ -38,9 +38,9 @@ public class FixedSetValuesTest {
 
     @Test
     public void testFuzzySearchMatch() {
-        int match = FuzzySearch.tokenSetRatio  ("gurudwara niai 1", "Gurudwara Niai Sahib Street 1");
+        int match = FuzzySearch.ratio  ("gurudwara niai 1", "Gurudwara Niai Sahib Street 1");
         log.info("Match : " + match);
-        match = FuzzySearch.tokenSortRatio  ("gurudwara niai 1", "Gurudwara Niai Sahib Street 1");
+        match = FuzzySearch.partialRatio  ("gurudwara niai 1", "Gurudwara Niai Sahib Street 1");
         log.info("Match : " + match);
     }
 
