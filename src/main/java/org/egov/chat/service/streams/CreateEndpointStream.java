@@ -16,7 +16,9 @@ import org.egov.chat.service.restendpoint.RestAPI;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Properties;
 
 @Slf4j
@@ -31,6 +33,8 @@ public class CreateEndpointStream extends CreateStream {
 
     @Autowired
     private MessageRepository messageRepository;
+
+    private String continueMessage = "To continue chatting send \"Hi\"";
 
     public void createEndpointStream(JsonNode config, String inputTopic, String sendMessageTopic) {
 
@@ -47,12 +51,17 @@ public class CreateEndpointStream extends CreateStream {
             try {
                 ObjectNode responseMessage = restAPI.makeRestEndpointCall(config, chatNode);
 
-                chatNode = ((ObjectNode) chatNode).set("response", responseMessage);
+                ((ObjectNode) chatNode).set("response", responseMessage);
 
                 String conversationId = chatNode.at(JsonPointerNameConstants.conversationId).asText();
                 conversationStateRepository.markConversationInactive(conversationId);
 
-                return Collections.singletonList(chatNode);
+                List<JsonNode> nodes = new ArrayList<>();
+                nodes.add(chatNode);
+
+                nodes.add(createContinueMessageNode(chatNode));
+
+                return nodes;
             } catch (Exception e) {
                 log.error(e.getMessage());
                 return Collections.emptyList();
@@ -62,6 +71,16 @@ public class CreateEndpointStream extends CreateStream {
         kafkaStreamsConfig.startStream(builder, streamConfiguration);
 
         log.info("Endpoint Stream started : " + streamName + ", from : " + inputTopic + ", to : " + sendMessageTopic);
+    }
+
+    private JsonNode createContinueMessageNode(JsonNode chatNode) {
+        JsonNode continueMessageNode = chatNode.deepCopy();
+
+        ObjectNode response = (ObjectNode) continueMessageNode.get("response");
+        response.put("type", "text");
+        response.put("text", continueMessage);
+
+        return continueMessageNode;
     }
 
 }

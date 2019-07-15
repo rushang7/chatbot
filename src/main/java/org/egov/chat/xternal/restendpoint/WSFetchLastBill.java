@@ -30,7 +30,9 @@ public class WSFetchLastBill implements RestEndpoint {
     @Value("${ws.service.fetch.bill.path}")
     private String wsFetchBillPath;
 
-    private String hardcodedResponse = "{\"message\":\"Dear Consumer,\\nWater bill of Consumer No.: 2113008277 for 2018-2019-Q2 (Jul to Sept) is Rs. 420.00/- . Payment Due Date: 03/07/2019. \\nThanks,\\nSunam-DEV Municipal Council\",\"attachmentLink\":\"https://s3.ap-south-1.amazonaws.com/egov-telemetry-data/whatsapp/2113008271_211300000012791.pdf\"}";
+    private String hardcodedResponse = "{\"message\":\"Dear Consumer,\\nWater bill of Consumer No.: 2113008277 for " +
+            "2019-2020-Q2 (Jul to Sept) is Rs. 420.00/- . Payment Due Date: 31/07/2019. \\nThanks,\\nSunam " +
+            "Municipal Council\",\"attachmentLink\":\"https://s3.ap-south-1.amazonaws.com/egov-telemetry-data/whatsapp/2113008271_211300000012791.pdf\"}";
 
     private String hardcodedResponseWithoutAttachment ="{\"message\":\"Dear Consumer,\\nWater bill of Consumer No.: 2113008277 for 2018-2019-Q2 (Jul to Sept) is Rs. 420.00/- . Payment Due Date: 03/07/2019 . Link to pay online http://bit.ly/SunamWater\\nThanks,\\nSunam-DEV Municipal Council\"}";
 
