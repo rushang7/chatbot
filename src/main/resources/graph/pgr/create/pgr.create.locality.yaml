@@ -19,6 +19,6 @@ values :
     recipient: /recipient/to
 
 fuzzyMatchThreshold: 70
-matchAnswerThreshold: 80
+matchAnswerThreshold: 70
 
 errorMessage: chatbot.messages.pgrCreateLocalityError

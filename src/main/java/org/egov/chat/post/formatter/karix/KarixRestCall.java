@@ -35,7 +35,7 @@ public class KarixRestCall {
             ResponseEntity<JsonNode> karixResponse = restTemplate.postForEntity(karixSendMessageUrl, request, JsonNode.class);
 
             // TODO : Remove delay after discussing with Karix
-            Thread.sleep(1000);
+            Thread.sleep(2000);
 
             log.info("Karix Send Message Response : " + karixResponse.toString());
         } catch (Exception e) {

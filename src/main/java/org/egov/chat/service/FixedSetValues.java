@@ -113,7 +113,7 @@ public class FixedSetValues {
             Integer highestFuzzyScoreMatch = 0;
             answerIndex = 0;
             for(int i = 0; i < validValues.size(); i++) {
-                Integer score = FuzzySearch.partialRatio(validValues.get(i), answer);
+                Integer score = FuzzySearch.ratio(validValues.get(i), answer);
                 if(score > highestFuzzyScoreMatch) {
                     highestFuzzyScoreMatch = score;
                     answerIndex = i;
@@ -193,7 +193,7 @@ public class FixedSetValues {
 
         Integer fuzzyMatchScore;
         for(String validValue : validValues) {
-            fuzzyMatchScore = FuzzySearch.partialRatio(answer, validValue);
+            fuzzyMatchScore = FuzzySearch.ratio(answer, validValue);
             if(fuzzyMatchScore >= matchScoreThreshold)
                 return true;
         }

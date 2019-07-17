@@ -19,4 +19,4 @@ values :
 displayValuesAsOptions : true
 
 fuzzyMatchThreshold: 70
-matchAnswerThreshold: 80
+matchAnswerThreshold: 70

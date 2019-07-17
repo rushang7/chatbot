@@ -212,6 +212,7 @@ public class PGRStatusUpdateEventFormatter implements SystemInitiatedEventFormat
         message += "\nComplaint Number : " + serviceRequestId;
         message += "\nCategory : " + localizationService.getMessageForCode(complaintCategoryLocalizationPrefix + serviceCode);
         message += "\nAssignee Mobile Number : " + assigneeMobileNumber;
+        message += "\n" + makeCitizenURLForComplaint(serviceRequestId);
 
         ObjectNode responseMessage = objectMapper.createObjectNode();
 
