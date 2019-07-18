@@ -1,4 +1,4 @@
-package org.egov.chat.xternal.util;
+package org.egov.chat.util;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

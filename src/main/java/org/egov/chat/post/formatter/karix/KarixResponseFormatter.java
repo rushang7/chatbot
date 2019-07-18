@@ -15,7 +15,7 @@ import org.egov.chat.config.KafkaStreamsConfig;
 import org.egov.chat.config.TenantIdWhatsAppNumberMapping;
 import org.egov.chat.post.formatter.ChatNodeJsonPointerConstants;
 import org.egov.chat.post.formatter.ResponseFormatter;
-import org.egov.chat.xternal.util.FileStore;
+import org.egov.chat.util.FileStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

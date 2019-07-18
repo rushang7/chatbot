@@ -18,7 +18,6 @@ values :
     authToken : /user/authToken
     recipient: /recipient/to
 
-fuzzyMatchThreshold: 70
 matchAnswerThreshold: 70
 
 errorMessage: chatbot.messages.pgrCreateLocalityError

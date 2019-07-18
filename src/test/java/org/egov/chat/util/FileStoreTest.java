@@ -1,19 +1,9 @@
-package org.egov.chat.xternal.util;
+package org.egov.chat.util;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
 import org.junit.Test;
-import org.springframework.http.HttpEntity;
 
-import java.io.*;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Base64;
-
-import static org.junit.Assert.*;
+import java.io.IOException;
 
 @Slf4j
 public class FileStoreTest {

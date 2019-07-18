@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONArray;
 import org.egov.chat.service.valuefetch.ExternalValueFetcher;
-import org.egov.chat.xternal.util.LocalizationService;
+import org.egov.chat.util.LocalizationService;
 import org.egov.common.contract.request.RequestInfo;
 import org.egov.mdms.model.*;
 import org.springframework.beans.factory.annotation.Autowired;

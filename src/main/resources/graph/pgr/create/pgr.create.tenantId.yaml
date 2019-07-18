@@ -17,7 +17,6 @@ values :
   params :
     tenantId : /tenantId
 
-fuzzyMatchThreshold: 70
 matchAnswerThreshold: 80
 
 errorMessage: chatbot.messages.pgrCreateTenantIdError

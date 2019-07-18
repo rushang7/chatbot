@@ -8,7 +8,7 @@ import com.jayway.jsonpath.JsonPath;
 import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONArray;
 import org.egov.chat.service.restendpoint.RestEndpoint;
-import org.egov.chat.xternal.util.LocalizationService;
+import org.egov.chat.util.LocalizationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
