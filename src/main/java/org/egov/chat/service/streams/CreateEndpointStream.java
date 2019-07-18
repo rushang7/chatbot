@@ -1,6 +1,7 @@
 package org.egov.chat.service.streams;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serdes;
@@ -27,6 +28,8 @@ public class CreateEndpointStream extends CreateStream {
 
     @Autowired
     private KafkaStreamsConfig kafkaStreamsConfig;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Autowired
     private RestAPI restAPI;
@@ -76,9 +79,11 @@ public class CreateEndpointStream extends CreateStream {
     private JsonNode createContinueMessageNode(JsonNode chatNode) {
         JsonNode continueMessageNode = chatNode.deepCopy();
 
-        ObjectNode response = (ObjectNode) continueMessageNode.get("response");
+        ObjectNode response = objectMapper.createObjectNode();
         response.put("type", "text");
         response.put("text", continueMessage);
+
+        ( (ObjectNode) continueMessageNode).set("response", response);
 
         return continueMessageNode;
     }

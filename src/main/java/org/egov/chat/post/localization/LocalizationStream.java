@@ -2,6 +2,7 @@ package org.egov.chat.post.localization;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serdes;
@@ -60,11 +61,17 @@ public class LocalizationStream {
         String locale = chatNode.at("/conversationState/locale").asText();
 
         if(chatNode.get("response").has("localizationCodes")) {
-            List<String> localizationCodes = objectMapper.readValue(chatNode.at("/response/localizationCodes").toString(),
-                    objectMapper.getTypeFactory().constructCollectionType(List.class, String.class));
-
             String message = "";
-            message += formMessageForCodes(localizationCodes, locale);
+            if(chatNode.at("/response/localizationCodes").get(0).isTextual()) {
+                List<String> localizationCodes = objectMapper.readValue(chatNode.at("/response/localizationCodes").toString(),
+                        objectMapper.getTypeFactory().constructCollectionType(List.class, String.class));
+
+                message += formMessageForCodes(localizationCodes, locale);
+            } else if(chatNode.at("/response/localizationCodes").isArray()) {
+                ArrayNode localizationCodes = (ArrayNode) chatNode.at("/response/localizationCodes");
+                message += formMessageForCodes(localizationCodes, locale);
+            }
+
             if(chatNode.get("response").has("text")) {
                 message += chatNode.at("/response/text").asText();
             }
@@ -74,6 +81,16 @@ public class LocalizationStream {
 
         return chatNode;
     }
+
+    public String formMessageForCodes(ArrayNode localizationCodes, String locale) {
+        List<String> localizedMessages = localizationService.getMessagesForCodes(localizationCodes, locale);
+
+        StringBuilder message = new StringBuilder();
+        localizedMessages.stream().forEach(localizedMessage -> message.append(localizedMessage));
+
+        return message.toString();
+    }
+
 
     public String formMessageForCodes(List<String> localizationCodes, String locale) {
         StringBuilder message = new StringBuilder();

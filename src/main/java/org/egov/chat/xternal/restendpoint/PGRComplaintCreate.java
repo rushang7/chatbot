@@ -2,6 +2,7 @@ package org.egov.chat.xternal.restendpoint;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
@@ -34,6 +35,8 @@ public class PGRComplaintCreate implements RestEndpoint {
     private String pgrHost;
     @Value("${pgr.service.create.path}")
     private String pgrCreateComplaintPath;
+
+    private String localizationTemplateCode = "chatbot.template.pgrCreateComplaintEndMessage";
 
     String pgrCreateRequestBody = "{\"RequestInfo\":{\"authToken\":\"\", \"userInfo\": {}}," +
             "\"actionInfo\":[{\"media\":[]}],\"services\":[{\"addressDetail\":{\"city\":\"\",\"mohalla\": \"\"," +
@@ -100,11 +103,28 @@ public class PGRComplaintCreate implements RestEndpoint {
             String url = egovExternalHost + "/citizen/complaint-details/" + encodedPath;
             url += "?token=" + token;
 
-            String message = "Complaint registered successfully!\nYour complaint number is : " + serviceRequestId
-                    + "\nYou can view your complaint at : ";
-            message += url;
+            ObjectNode params = objectMapper.createObjectNode();
+            ObjectNode objectNode = objectMapper.createObjectNode();
+            objectNode.put("value", serviceRequestId);
+            params.set("serviceRequestId", objectNode);
 
-            responseMessage.put("text", message);
+            objectNode = objectMapper.createObjectNode();
+            objectNode.put("value", url);
+            params.set("url", objectNode);
+
+            ObjectNode localizationCode = objectMapper.createObjectNode();
+            localizationCode.put("templateId", localizationTemplateCode);
+            localizationCode.set("params", params);
+
+            ArrayNode arrayNode = objectMapper.createArrayNode();
+            arrayNode.add(localizationCode);
+            responseMessage.set("localizationCodes", arrayNode);
+
+//            String message = "Complaint registered successfully!\nYour complaint number is : " + serviceRequestId
+//                    + "\nYou can view your complaint at : ";
+//            message += url;
+//
+//            responseMessage.put("text", message);
         } else {
             responseMessage.put("text", "Error Occured");
         }
