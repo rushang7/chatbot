@@ -12,4 +12,10 @@ public class KairxJsonPointerConstants {
 
     public static String locationContent = "/body/eventContent/message/location";
 
+    public static String attachmentType = "/body/eventContent/message/attachmentType";
+
+    public static String imageFileLink = "/body/eventContent/message/image/fileLink";
+
+    public static String imageMimeType = "/body/eventContent/message/image/mime_type";
+
 }

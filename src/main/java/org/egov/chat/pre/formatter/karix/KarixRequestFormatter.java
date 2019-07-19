@@ -14,8 +14,8 @@ import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
 import org.egov.chat.config.KafkaStreamsConfig;
-import org.egov.chat.config.TenantIdWhatsAppNumberMapping;
 import org.egov.chat.pre.formatter.RequestFormatter;
+import org.egov.chat.util.FileStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -33,7 +33,7 @@ public class KarixRequestFormatter implements RequestFormatter {
     private KafkaStreamsConfig kafkaStreamsConfig;
 
     @Autowired
-    private TenantIdWhatsAppNumberMapping tenantIdWhatsAppNumberMapping;
+    private FileStore fileStore;
 
     @Override
     public String getStreamName() {
@@ -49,6 +49,10 @@ public class KarixRequestFormatter implements RequestFormatter {
             String contentType = inputRequest.at(KairxJsonPointerConstants.contentType).asText();
             if(contentType.equalsIgnoreCase("text") || contentType.equalsIgnoreCase("location")) {
                 return true;
+            } else if(contentType.equalsIgnoreCase("ATTACHMENT")) {
+                String attachmentType = inputRequest.at(KairxJsonPointerConstants.attachmentType).asText();
+                if(attachmentType.equalsIgnoreCase("image"))
+                    return true;
             }
         } catch (Exception e) {
             log.error("Invalid request");
@@ -70,11 +74,19 @@ public class KarixRequestFormatter implements RequestFormatter {
         user.set("mobileNumber", TextNode.valueOf(mobileNumber));
 
         ObjectNode message = objectMapper.createObjectNode();
-        message.set("type", inputRequest.at(KairxJsonPointerConstants.contentType));
-        if(message.get("type").asText().equalsIgnoreCase("text")) {
+        String contentType = inputRequest.at(KairxJsonPointerConstants.contentType).asText();
+        message.put("type", contentType);
+        if(contentType.equalsIgnoreCase("text")) {
             message.set("content", inputRequest.at(KairxJsonPointerConstants.textContent));
-        } else if(message.get("type").asText().equalsIgnoreCase("location")) {
+        } else if(contentType.equalsIgnoreCase("location")) {
             message.set("content", TextNode.valueOf(inputRequest.at(KairxJsonPointerConstants.locationContent).toString()));
+        } else if(contentType.equalsIgnoreCase("ATTACHMENT")) {
+            if(inputRequest.at(KairxJsonPointerConstants.attachmentType).asText().equalsIgnoreCase("image")) {
+                message.put("type", "image");
+            }
+            String imageLink = inputRequest.at(KairxJsonPointerConstants.imageFileLink).asText();
+            String fileStoreId = fileStore.downloadFromKarixAndStore(imageLink);
+            message.put("content", fileStoreId);
         }
 
         ObjectNode recipient = objectMapper.createObjectNode();

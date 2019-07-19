@@ -5,9 +5,12 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.tika.mime.MimeTypes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.PropertySources;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -17,12 +20,18 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Base64;
 
 @Slf4j
-@PropertySource("classpath:xternal.properties")
+@PropertySources({
+        @PropertySource("classpath:xternal.properties"),
+        @PropertySource("classpath:application.properties")
+})
 @Component
 public class FileStore {
 
@@ -43,6 +52,8 @@ public class FileStore {
     @Value("${state.level.tenant.id}")
     private String stateLevelTenantId;
 
+    @Value("${karix.authentication.token}")
+    private String karixAuthenticationToken;
 
     public String downloadAndStore(String getLink) {
         String filename = FilenameUtils.getName(getLink);
@@ -130,5 +141,23 @@ public class FileStore {
 
     public String getBase64EncodedStringOfFile(File file) throws IOException {
         return new String(Base64.getEncoder().encode(FileUtils.readFileToByteArray(file)));
+    }
+
+    public String downloadFromKarixAndStore(String getLink) throws Exception {
+        URL url = new URL(getLink);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");
+        conn.setRequestProperty("Authentication", karixAuthenticationToken);
+        conn.setDoOutput(true);
+
+        InputStream inputStream = conn.getInputStream();
+        String ext = MimeTypes.getDefaultMimeTypes().forName(conn.getContentType()).getExtension();
+        File file = File.createTempFile(moduleName, ext);
+        FileOutputStream fileOutputStream = new FileOutputStream(file);
+        IOUtils.copy(inputStream, fileOutputStream);
+
+        String fileStoreId = saveToFileStore(file);
+        file.delete();
+        return fileStoreId;
     }
 }
