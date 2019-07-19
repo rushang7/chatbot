@@ -2,6 +2,7 @@ package org.egov.chat.xternal.restendpoint;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
@@ -37,6 +38,9 @@ public class PGRComplaintTrack implements RestEndpoint {
     private LocalizationService localizationService;
 
     private String complaintCategoryLocalizationPrefix = "pgr.complaint.category.";
+
+    private String trackComplaintHeaderLocalizationCode = "chatbot.message.pgrTrackComplaintEndHeader";
+    private String complaintSummaryTemplateLocalizationCode = "chatbot.template.pgrTrackComplaintSummary";
 
     @Value("${egov.external.host}")
     private String egovExternalHost;
@@ -89,6 +93,8 @@ public class PGRComplaintTrack implements RestEndpoint {
         ObjectNode responseMessage = objectMapper.createObjectNode();
         responseMessage.put("type", "text");
 
+        ArrayNode localizationCodesArrayNode = objectMapper.createArrayNode();
+
         if(responseEntity.getStatusCode().is2xxSuccessful()) {
 
             DocumentContext documentContext = JsonPath.parse(responseEntity.getBody().toString());
@@ -98,29 +104,79 @@ public class PGRComplaintTrack implements RestEndpoint {
             String message = "";
 
             if(numberOfServices > 0) {
+                ObjectNode trackComplaintHeader = objectMapper.createObjectNode();
+                trackComplaintHeader.put("code", trackComplaintHeaderLocalizationCode);
+                localizationCodesArrayNode.add(trackComplaintHeader);
+
                 message += "Complaint Details :";
                 for (int i = 0; i < numberOfServices; i++) {
-                    if(numberOfServices > 1)
+                    if(numberOfServices > 1) {
+                        ObjectNode valueString = objectMapper.createObjectNode();
+                        valueString.put("value", "\n\n*" + (i + 1) + ".* ");
+                        localizationCodesArrayNode.add(valueString);
                         message += "\n\n*" + (i + 1) + ".* ";
-                    else
+                    } else {
+                        ObjectNode valueString = objectMapper.createObjectNode();
+                        valueString.put("value", "\n");
+                        localizationCodesArrayNode.add(valueString);
                         message += "\n";
+                    }
+
+                    ObjectNode template = objectMapper.createObjectNode();
+                    template.put("templateId", complaintSummaryTemplateLocalizationCode);
+
+                    ObjectNode param;
+
+                    ObjectNode params = objectMapper.createObjectNode();
+
+                    String complaintNumber = documentContext.read("$.services.[" + i + "].serviceRequestId");
+                    param = objectMapper.createObjectNode();
+                    param.put("value", complaintNumber);
+                    params.set("complaintNumber", param);
+
+                    String complaintCategory = documentContext.read("$.services.[" + i + "].serviceCode");
+                    param = objectMapper.createObjectNode();
+                    param.put("code", complaintCategoryLocalizationPrefix + complaintCategory);
+                    params.set("complaintCategory", param);
+
+                    Date createdDate = new Date((long) documentContext.read("$.services.[" + i + "].auditDetails.createdTime"));
+                    String filedDate = getDateFromTimestamp(createdDate);
+                    param = objectMapper.createObjectNode();
+                    param.put("value", filedDate);
+                    params.set("filedDate", param);
+
+                    String status = documentContext.read("$.services.[" + i + "].status");
+                    param = objectMapper.createObjectNode();
+                    param.put("value", status);
+                    params.set("status", param);
+
+                    String encodedPath = URLEncoder.encode( documentContext.read("$.services.[" + i + "].serviceRequestId"), "UTF-8" );
+                    String url = egovExternalHost + "/citizen/complaint-details/" + encodedPath;
+                    param = objectMapper.createObjectNode();
+                    param.put("value", url);
+                    params.set("url", param);
+
+                    template.set("params", params);
+
+                    localizationCodesArrayNode.add(template);
 
                     message += "Complaint Number : " + documentContext.read("$.services.[" + i + "].serviceRequestId");
                     message += "\nCategory : ";
                     message += localizationService.getMessageForCode(complaintCategoryLocalizationPrefix + documentContext.read("$.services.[" + i + "].serviceCode"));
-                    Date createdDate = new Date((long) documentContext.read("$.services.[" + i + "].auditDetails.createdTime"));
                     message += "\nFiled Date : " + getDateFromTimestamp(createdDate);
                     message += "\nCurrent Status : " + documentContext.read("$.services.[" + i + "].status");
 
-                    String encodedPath = URLEncoder.encode( documentContext.read("$.services.[" + i + "].serviceRequestId"), "UTF-8" );
-                    String url = egovExternalHost + "/citizen/complaint-details/" + encodedPath;
                     message += "\n" + url;
                 }
+//                responseMessage.put("text", message);
+
+                responseMessage.set("localizationCodes", localizationCodesArrayNode);
             } else {
                 message += "No complaints to display";
+                responseMessage.put("text", message);
             }
 
-            responseMessage.put("text", message);
+
         } else {
             responseMessage.put("text", "Error Occured");
         }

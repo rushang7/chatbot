@@ -98,15 +98,15 @@ public class PGRComplaintCreate implements RestEndpoint {
 
         if(responseEntity.getStatusCode().is2xxSuccessful()) {
             ObjectNode pgrResponse = responseEntity.getBody();
-            String serviceRequestId = pgrResponse.get("services").get(0).get("serviceRequestId").asText();
-            String encodedPath = URLEncoder.encode( serviceRequestId, "UTF-8" );
+            String complaintNumber = pgrResponse.get("services").get(0).get("serviceRequestId").asText();
+            String encodedPath = URLEncoder.encode( complaintNumber, "UTF-8" );
             String url = egovExternalHost + "/citizen/complaint-details/" + encodedPath;
             url += "?token=" + token;
 
             ObjectNode params = objectMapper.createObjectNode();
             ObjectNode objectNode = objectMapper.createObjectNode();
-            objectNode.put("value", serviceRequestId);
-            params.set("serviceRequestId", objectNode);
+            objectNode.put("value", complaintNumber);
+            params.set("complaintNumber", objectNode);
 
             objectNode = objectMapper.createObjectNode();
             objectNode.put("value", url);
