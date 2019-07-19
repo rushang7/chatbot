@@ -8,9 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.List;
-
 @Service
 @Slf4j
 public class ErrorMessageGenerator {
@@ -26,8 +23,11 @@ public class ErrorMessageGenerator {
 
         JsonNode errorMessageNode = chatNode.deepCopy();
 
-        List<String> localizationCodes = Collections.singletonList(getErrorMessageForConfig(config));
-        ArrayNode localizationCodesArrayNode = objectMapper.valueToTree(localizationCodes);
+
+        ObjectNode localizationCode = objectMapper.createObjectNode();
+        localizationCode.put("code", getErrorMessageForConfig(config));
+        ArrayNode localizationCodesArrayNode = objectMapper.createArrayNode();
+        localizationCodesArrayNode.add(localizationCode);
 
         ObjectNode response = objectMapper.createObjectNode();
         response.put("type", "text");

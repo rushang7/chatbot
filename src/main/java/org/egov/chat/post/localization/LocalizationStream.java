@@ -62,15 +62,8 @@ public class LocalizationStream {
 
         if(chatNode.get("response").has("localizationCodes")) {
             String message = "";
-            if(chatNode.at("/response/localizationCodes").get(0).isTextual()) {
-                List<String> localizationCodes = objectMapper.readValue(chatNode.at("/response/localizationCodes").toString(),
-                        objectMapper.getTypeFactory().constructCollectionType(List.class, String.class));
-
-                message += formMessageForCodes(localizationCodes, locale);
-            } else if(chatNode.at("/response/localizationCodes").isArray()) {
-                ArrayNode localizationCodes = (ArrayNode) chatNode.at("/response/localizationCodes");
-                message += formMessageForCodes(localizationCodes, locale);
-            }
+            ArrayNode localizationCodes = (ArrayNode) chatNode.at("/response/localizationCodes");
+            message += formMessageForCodes(localizationCodes, locale);
 
             if(chatNode.get("response").has("text")) {
                 message += chatNode.at("/response/text").asText();
@@ -89,31 +82,6 @@ public class LocalizationStream {
         localizedMessages.stream().forEach(localizedMessage -> message.append(localizedMessage));
 
         return message.toString();
-    }
-
-
-    public String formMessageForCodes(List<String> localizationCodes, String locale) {
-        StringBuilder message = new StringBuilder();
-
-        log.debug("Localization Codes : " + localizationCodes + ", Locale : " + locale);
-
-        for(String code : localizationCodes) {
-            if(checkIfStringIsALocalizationCode(code)) {
-                message.append(localizationService.getMessageForCode(code, locale));
-            } else {
-                message.append(code);
-            }
-        }
-
-        return message.toString();
-    }
-
-    // TODO : check for localization codes
-    private boolean checkIfStringIsALocalizationCode(String string) {
-        if(string.length() > 2)
-            return true;
-        else
-            return false;
     }
 
 }
