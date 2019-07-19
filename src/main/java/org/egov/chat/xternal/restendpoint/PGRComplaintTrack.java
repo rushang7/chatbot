@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONArray;
 import org.egov.chat.service.restendpoint.RestEndpoint;
 import org.egov.chat.util.LocalizationService;
+import org.egov.chat.util.NumeralLocalization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -36,6 +37,8 @@ public class PGRComplaintTrack implements RestEndpoint {
 
     @Autowired
     private LocalizationService localizationService;
+    @Autowired
+    private NumeralLocalization numeralLocalization;
 
     private String complaintCategoryLocalizationPrefix = "pgr.complaint.category.";
 
@@ -111,9 +114,10 @@ public class PGRComplaintTrack implements RestEndpoint {
                 message += "Complaint Details :";
                 for (int i = 0; i < numberOfServices; i++) {
                     if(numberOfServices > 1) {
-                        ObjectNode valueString = objectMapper.createObjectNode();
-                        valueString.put("value", "\n\n*" + (i + 1) + ".* ");
-                        localizationCodesArrayNode.add(valueString);
+                        String value = "\n\n*" + (i + 1) + ".* ";
+
+                        localizationCodesArrayNode.addAll(numeralLocalization.getLocalizationCodesForStringContainingNumbers(value));
+
                         message += "\n\n*" + (i + 1) + ".* ";
                     } else {
                         ObjectNode valueString = objectMapper.createObjectNode();
@@ -130,9 +134,7 @@ public class PGRComplaintTrack implements RestEndpoint {
                     ObjectNode params = objectMapper.createObjectNode();
 
                     String complaintNumber = documentContext.read("$.services.[" + i + "].serviceRequestId");
-                    param = objectMapper.createObjectNode();
-                    param.put("value", complaintNumber);
-                    params.set("complaintNumber", param);
+                    params.set("complaintNumber", numeralLocalization.getLocalizationCodesForStringContainingNumbers(complaintNumber));
 
                     String complaintCategory = documentContext.read("$.services.[" + i + "].serviceCode");
                     param = objectMapper.createObjectNode();
@@ -141,9 +143,7 @@ public class PGRComplaintTrack implements RestEndpoint {
 
                     Date createdDate = new Date((long) documentContext.read("$.services.[" + i + "].auditDetails.createdTime"));
                     String filedDate = getDateFromTimestamp(createdDate);
-                    param = objectMapper.createObjectNode();
-                    param.put("value", filedDate);
-                    params.set("filedDate", param);
+                    params.set("filedDate", numeralLocalization.getLocalizationCodesForStringContainingNumbers(filedDate));
 
                     String status = documentContext.read("$.services.[" + i + "].status");
                     param = objectMapper.createObjectNode();

@@ -8,6 +8,7 @@ import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import lombok.extern.slf4j.Slf4j;
 import org.egov.chat.service.restendpoint.RestEndpoint;
+import org.egov.chat.util.NumeralLocalization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -27,6 +28,9 @@ public class PGRComplaintCreate implements RestEndpoint {
     private RestTemplate restTemplate;
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private NumeralLocalization numeralLocalization;
 
     @Value("${egov.external.host}")
     private String egovExternalHost;
@@ -103,22 +107,22 @@ public class PGRComplaintCreate implements RestEndpoint {
             String url = egovExternalHost + "/citizen/complaint-details/" + encodedPath;
             url += "?token=" + token;
 
+            ObjectNode param;
+
             ObjectNode params = objectMapper.createObjectNode();
-            ObjectNode objectNode = objectMapper.createObjectNode();
-            objectNode.put("value", complaintNumber);
-            params.set("complaintNumber", objectNode);
+            params.set("complaintNumber", numeralLocalization.getLocalizationCodesForStringContainingNumbers(complaintNumber));
 
-            objectNode = objectMapper.createObjectNode();
-            objectNode.put("value", url);
-            params.set("url", objectNode);
+            param = objectMapper.createObjectNode();
+            param.put("value", url);
+            params.set("url", param);
 
-            ObjectNode localizationCode = objectMapper.createObjectNode();
-            localizationCode.put("templateId", localizationTemplateCode);
-            localizationCode.set("params", params);
+            ObjectNode template = objectMapper.createObjectNode();
+            template.put("templateId", localizationTemplateCode);
+            template.set("params", params);
 
-            ArrayNode arrayNode = objectMapper.createArrayNode();
-            arrayNode.add(localizationCode);
-            responseMessage.set("localizationCodes", arrayNode);
+            ArrayNode localizationCodes = objectMapper.createArrayNode();
+            localizationCodes.add(template);
+            responseMessage.set("localizationCodes", localizationCodes);
 
 //            String message = "Complaint registered successfully!\nYour complaint number is : " + serviceRequestId
 //                    + "\nYou can view your complaint at : ";
