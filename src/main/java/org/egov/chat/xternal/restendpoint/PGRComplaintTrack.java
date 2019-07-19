@@ -9,7 +9,6 @@ import com.jayway.jsonpath.JsonPath;
 import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONArray;
 import org.egov.chat.service.restendpoint.RestEndpoint;
-import org.egov.chat.util.LocalizationService;
 import org.egov.chat.util.NumeralLocalization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,8 +34,6 @@ public class PGRComplaintTrack implements RestEndpoint {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Autowired
-    private LocalizationService localizationService;
     @Autowired
     private NumeralLocalization numeralLocalization;
 
@@ -104,26 +101,19 @@ public class PGRComplaintTrack implements RestEndpoint {
 
             Integer numberOfServices = (Integer) ( (JSONArray) documentContext.read("$..services.length()")) .get(0);
 
-            String message = "";
-
             if(numberOfServices > 0) {
                 ObjectNode trackComplaintHeader = objectMapper.createObjectNode();
                 trackComplaintHeader.put("code", trackComplaintHeaderLocalizationCode);
                 localizationCodesArrayNode.add(trackComplaintHeader);
 
-                message += "Complaint Details :";
                 for (int i = 0; i < numberOfServices; i++) {
                     if(numberOfServices > 1) {
                         String value = "\n\n*" + (i + 1) + ".* ";
-
                         localizationCodesArrayNode.addAll(numeralLocalization.getLocalizationCodesForStringContainingNumbers(value));
-
-                        message += "\n\n*" + (i + 1) + ".* ";
                     } else {
                         ObjectNode valueString = objectMapper.createObjectNode();
                         valueString.put("value", "\n");
                         localizationCodesArrayNode.add(valueString);
-                        message += "\n";
                     }
 
                     ObjectNode template = objectMapper.createObjectNode();
@@ -159,20 +149,10 @@ public class PGRComplaintTrack implements RestEndpoint {
                     template.set("params", params);
 
                     localizationCodesArrayNode.add(template);
-
-                    message += "Complaint Number : " + documentContext.read("$.services.[" + i + "].serviceRequestId");
-                    message += "\nCategory : ";
-                    message += localizationService.getMessageForCode(complaintCategoryLocalizationPrefix + documentContext.read("$.services.[" + i + "].serviceCode"));
-                    message += "\nFiled Date : " + getDateFromTimestamp(createdDate);
-                    message += "\nCurrent Status : " + documentContext.read("$.services.[" + i + "].status");
-
-                    message += "\n" + url;
                 }
-//                responseMessage.put("text", message);
-
                 responseMessage.set("localizationCodes", localizationCodesArrayNode);
             } else {
-                message += "No complaints to display";
+                String message = "No complaints to display";
                 responseMessage.put("text", message);
             }
 

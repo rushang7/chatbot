@@ -123,12 +123,6 @@ public class PGRComplaintCreate implements RestEndpoint {
             ArrayNode localizationCodes = objectMapper.createArrayNode();
             localizationCodes.add(template);
             responseMessage.set("localizationCodes", localizationCodes);
-
-//            String message = "Complaint registered successfully!\nYour complaint number is : " + serviceRequestId
-//                    + "\nYou can view your complaint at : ";
-//            message += url;
-//
-//            responseMessage.put("text", message);
         } else {
             responseMessage.put("text", "Error Occured");
         }
