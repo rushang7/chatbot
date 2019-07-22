@@ -3,6 +3,6 @@ nodeType : step
 
 optional : true
 
-type : photo
+type : image
 
 message : chatbot.messages.pgrCreatePhoto

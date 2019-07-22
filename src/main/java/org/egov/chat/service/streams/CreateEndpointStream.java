@@ -2,6 +2,7 @@ package org.egov.chat.service.streams;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serdes;
@@ -37,7 +38,7 @@ public class CreateEndpointStream extends CreateStream {
     @Autowired
     private MessageRepository messageRepository;
 
-    private String continueMessage = "To continue chatting send \"Hi\"";
+    private String continueMessageLocalizationCode = "chatbot.messages.continueMessage";
 
     public void createEndpointStream(JsonNode config, String inputTopic, String sendMessageTopic) {
 
@@ -81,7 +82,13 @@ public class CreateEndpointStream extends CreateStream {
 
         ObjectNode response = objectMapper.createObjectNode();
         response.put("type", "text");
-        response.put("text", continueMessage);
+
+        ObjectNode localizationCode = objectMapper.createObjectNode();
+        localizationCode.put("code", continueMessageLocalizationCode);
+
+        ArrayNode localizationCodes = objectMapper.createArrayNode();
+        localizationCodes.add(localizationCode);
+        response.set("localizationCodes", localizationCodes);
 
         ( (ObjectNode) continueMessageNode).set("response", response);
 
