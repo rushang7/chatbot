@@ -1,12 +1,12 @@
 package org.egov.chat.xternal.restendpoint;
 
 import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.WriteContext;
 import lombok.extern.slf4j.Slf4j;
 import org.egov.chat.models.Message;
 import org.junit.Test;
@@ -63,6 +63,18 @@ public class PGRComplaintCreateTest {
 
     }
 
+    @Test
+    public void testAddElementToArrayDocumentContext() {
+        String pgrCreateRequestBody = "{\"RequestInfo\":{\"authToken\":\"\", \"userInfo\": {}}," +
+                "\"actionInfo\":[{\"media\":[]}],\"services\":[{\"addressDetail\":{\"city\":\"\",\"mohalla\": \"\"," +
+                "\"latitude\" : \"\",\"longitude\" : \"\"},\"city\":\"\",\"phone\":\"\",\"serviceCode\":\"\"," +
+                "\"source\":\"web\",\"tenantId\":\"\",\"description\":\"\"}]}";
 
+        WriteContext request = JsonPath.parse(pgrCreateRequestBody);
+
+        request.add("$.actionInfo.[0].media", "asd");
+
+        log.info(request.jsonString());
+    }
 
 }

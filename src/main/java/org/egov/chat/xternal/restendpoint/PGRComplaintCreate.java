@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.WriteContext;
 import lombok.extern.slf4j.Slf4j;
 import org.egov.chat.service.restendpoint.RestEndpoint;
 import org.egov.chat.util.NumeralLocalization;
@@ -45,7 +46,7 @@ public class PGRComplaintCreate implements RestEndpoint {
     String pgrCreateRequestBody = "{\"RequestInfo\":{\"authToken\":\"\", \"userInfo\": {}}," +
             "\"actionInfo\":[{\"media\":[]}],\"services\":[{\"addressDetail\":{\"city\":\"\",\"mohalla\": \"\"," +
             "\"latitude\" : \"\",\"longitude\" : \"\"},\"city\":\"\",\"phone\":\"\",\"serviceCode\":\"\"," +
-            "\"source\":\"web\",\"tenantId\":\"\",\"description\":\"\"}]}";
+            "\"source\":\"whatsapp\",\"tenantId\":\"\",\"description\":\"\"}]}";
 
     @Override
     public ObjectNode getMessageForRestCall(ObjectNode params) throws Exception {
@@ -56,12 +57,14 @@ public class PGRComplaintCreate implements RestEndpoint {
         String city = params.get("pgr.create.tenantId").asText();
         String locality = params.get("pgr.create.locality").asText();
         String complaintDetails = params.get("pgr.create.complaintDetails").asText();
+        String photo = params.get("pgr.create.photo").asText();
+
         DocumentContext userInfo = JsonPath.parse(params.get("userInfo").asText());
 
 //        String location = params.get("pgr.create.location").asText();
 //        ObjectNode locationNode = (ObjectNode) objectMapper.readTree(location);
 
-        DocumentContext request = JsonPath.parse(pgrCreateRequestBody);
+        WriteContext request = JsonPath.parse(pgrCreateRequestBody);
 
         request.set("$.RequestInfo.authToken", authToken);
         request.set("$.RequestInfo.userInfo",  userInfo.json());
@@ -74,6 +77,9 @@ public class PGRComplaintCreate implements RestEndpoint {
         request.set("$.services.[0].serviceCode", complaintType);
         request.set("$.services.[0].phone", mobileNumber);
         request.set("$.services.[0].description", complaintDetails);
+
+        if(! photo.equalsIgnoreCase("null"))
+           request.add("$.actionInfo.[0].media", photo);
 
         log.info("PGR Create complaint request : " + request.jsonString());
 
