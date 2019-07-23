@@ -110,7 +110,7 @@ public class PGRStatusUpdateEventFormatter implements SystemInitiatedEventFormat
         chatNode.set("response", createResponseMessage(event));
 
         if(status.equalsIgnoreCase("resolved")) {
-            addImageWhenResolved(complaintDetails, chatNode);
+            addImageWhenResolved(event, chatNode);
         }
 
         chatNodes.add(chatNode);
@@ -167,8 +167,8 @@ public class PGRStatusUpdateEventFormatter implements SystemInitiatedEventFormat
         log.debug("No image found for assignee");
     }
 
-    private void addImageWhenResolved(JsonNode complaintDetails, JsonNode chatNode) {
-        ArrayNode actionHistory = (ArrayNode) complaintDetails.at("/actionHistory/0/actions");
+    private void addImageWhenResolved(JsonNode event, JsonNode chatNode) {
+        ArrayNode actionHistory = (ArrayNode) event.at("/actionInfo");
         for(JsonNode action : actionHistory) {
             if(action.get("action").asText().equalsIgnoreCase("resolve")) {
                 ArrayNode media = (ArrayNode) action.get("media");
