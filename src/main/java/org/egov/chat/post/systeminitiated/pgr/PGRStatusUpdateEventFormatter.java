@@ -2,6 +2,7 @@ package org.egov.chat.post.systeminitiated.pgr;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
@@ -20,6 +21,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -54,9 +56,14 @@ public class PGRStatusUpdateEventFormatter implements SystemInitiatedEventFormat
     @Value("${user.service.search.path}")
     private String userServiceSearchPath;
 
+    @Value("${pgr.service.host}")
+    private String pgrServiceHost;
+    @Value("${pgr.service.search.path}")
+    private String pgrServiceSearchPath;
+
     private String userServiceSearchRequest = "{\"RequestInfo\":{},\"tenantId\":\"\",\"id\":[\"\"]}";
 
-    private String shareMessage = "Please share this with your friends and family : https://api.whatsapp.com/send?phone=919845315868&text=Hi";
+    private String complaintDetailsRequest = "{\"RequestInfo\":{\"authToken\":\"\",\"userInfo\":{}}}";
 
     @Override
     public String getStreamName() {
@@ -89,6 +96,9 @@ public class PGRStatusUpdateEventFormatter implements SystemInitiatedEventFormat
         List<JsonNode> chatNodes = new ArrayList<>();
 
         String mobileNumber = event.at("/services/0/citizen/mobileNumber").asText();
+        String status = event.at("/services/0/status").asText();
+
+        JsonNode complaintDetails = getComplaintDetails(event);
 
         ObjectNode chatNode = objectMapper.createObjectNode();
         chatNode.put("tenantId", stateLevelTenantId);
@@ -99,26 +109,20 @@ public class PGRStatusUpdateEventFormatter implements SystemInitiatedEventFormat
 
         chatNode.set("response", createResponseMessage(event));
 
+        if(status.equalsIgnoreCase("resolved")) {
+            addImageWhenResolved(complaintDetails, chatNode);
+        }
+
         chatNodes.add(chatNode);
 
-        String status = event.at("/services/0/status").asText();
-
         if(status.equalsIgnoreCase("assigned")) {
-            chatNodes.addAll(createChatNodeForAssignee(event));
+            chatNodes.addAll(createChatNodeForAssignee(event, complaintDetails));
         }
 
         return chatNodes;
     }
 
-    private JsonNode createShareNode(ObjectNode chatNode) {
-        ObjectNode shareNode = chatNode.deepCopy();
-
-        ((ObjectNode) shareNode.get("response")).put("text", shareMessage);
-
-        return shareNode;
-    }
-
-    private List<JsonNode> createChatNodeForAssignee(JsonNode event) throws IOException {
+    private List<JsonNode> createChatNodeForAssignee(JsonNode event, JsonNode complaintDetails) throws Exception {
         List<JsonNode> chatNodes = new ArrayList<>();
 
         JsonNode assignee = getAssignee(event);
@@ -138,7 +142,72 @@ public class PGRStatusUpdateEventFormatter implements SystemInitiatedEventFormat
         if(eventContainsLocation(event))
             chatNodes.add(createLocationNode(event, assignee));
 
+        addImageToChatNodeForAssignee(complaintDetails, chatNode);
+
         return chatNodes;
+    }
+
+    // TODO : Here only single image is being added
+    private void addImageToChatNodeForAssignee(JsonNode complaintDetails, JsonNode chatNode) {
+        ArrayNode actionHistory = (ArrayNode) complaintDetails.at("/actionHistory/0/actions");
+        for(JsonNode action : actionHistory) {
+            if(action.get("action").asText().equalsIgnoreCase("open")) {
+                ArrayNode media = (ArrayNode) action.get("media");
+                if(media.size() > 0) {
+                    log.debug("Link to media file : " + media.get(0).asText());
+                    ObjectNode response = (ObjectNode) chatNode.get("response");
+                    response.put("type", "attachment");
+                    ObjectNode attachment = objectMapper.createObjectNode();
+                    attachment.put("fileStoreId", media.get(0).asText());
+                    response.set("attachment", attachment);
+                    return;
+                }
+            }
+        }
+        log.debug("No image found for assignee");
+    }
+
+    private void addImageWhenResolved(JsonNode complaintDetails, JsonNode chatNode) {
+        ArrayNode actionHistory = (ArrayNode) complaintDetails.at("/actionHistory/0/actions");
+        for(JsonNode action : actionHistory) {
+            if(action.get("action").asText().equalsIgnoreCase("resolve")) {
+                ArrayNode media = (ArrayNode) action.get("media");
+                if(media.size() > 0) {
+                    log.debug("Link to media file : " + media.get(0).asText());
+                    ObjectNode response = (ObjectNode) chatNode.get("response");
+                    response.put("type", "attachment");
+                    ObjectNode attachment = objectMapper.createObjectNode();
+                    attachment.put("fileStoreId", media.get(0).asText());
+                    response.set("attachment", attachment);
+                    return;
+                }
+            }
+        }
+        log.debug("No image found when complaint is resolved");
+    }
+
+    private JsonNode getComplaintDetails(JsonNode event) throws IOException {
+        DocumentContext userInfo =  JsonPath.parse(event.at("/RequestInfo/userInfo").toString());
+
+        log.debug("UserInfo : " + userInfo.jsonString());
+
+        DocumentContext documentContext = JsonPath.parse(complaintDetailsRequest);
+        documentContext.set("$.RequestInfo.userInfo", userInfo.json());
+        documentContext.set("$.RequestInfo.authToken", "3aa4ece6-cb71-4f61-8a87-9487783a30d2"); // TODO : remove
+
+        JsonNode request = objectMapper.readTree(documentContext.jsonString());
+
+        String serviceRequestId = event.at("/services/0/serviceRequestId").asText();
+        String tenantId = event.at("/services/0/tenantId").asText();
+
+        UriComponentsBuilder uriComponents = UriComponentsBuilder.fromUriString(pgrServiceHost + pgrServiceSearchPath);
+        uriComponents.queryParam("tenantId", tenantId);
+        uriComponents.queryParam("serviceRequestId", serviceRequestId);
+
+        ResponseEntity<ObjectNode> responseEntity = restTemplate.postForEntity(uriComponents.buildAndExpand().toUri(),
+                request, ObjectNode.class);
+
+        return responseEntity.getBody();
     }
 
     private boolean eventContainsLocation(JsonNode event) {
