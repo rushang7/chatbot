@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import me.xdrop.fuzzywuzzy.FuzzySearch;
+import org.apache.commons.lang.StringUtils;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -34,6 +35,7 @@ public class FixedSetValuesTest {
         NumberFormat nf = NumberFormat.getInstance();
         System.out.println(nf.parse("३३"));
         System.out.println(Integer.parseInt("३३"));
+        System.out.println( StringUtils.isNumeric("३३ ".trim()) );
     }
 
     @Test

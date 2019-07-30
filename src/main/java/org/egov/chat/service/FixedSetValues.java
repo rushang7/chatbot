@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import me.xdrop.fuzzywuzzy.FuzzySearch;
+import org.apache.commons.lang.StringUtils;
 import org.egov.chat.config.JsonPointerNameConstants;
 import org.egov.chat.models.ConversationState;
 import org.egov.chat.repository.ConversationStateRepository;
@@ -139,12 +140,7 @@ public class FixedSetValues {
     }
 
     private boolean checkIfAnswerIsIndex(String answer) {
-        try {
-            Integer.parseInt(answer);
-            return true;
-        } catch (NumberFormatException exception) {
-            return false;
-        }
+        return StringUtils.isNumeric(answer.trim());
     }
 
     // TODO : Get Question Details from ChatNode
