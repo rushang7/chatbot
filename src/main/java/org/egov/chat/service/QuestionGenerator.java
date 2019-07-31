@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.egov.chat.config.JsonPointerNameConstants;
 import org.egov.chat.repository.ConversationStateRepository;
 import org.egov.chat.service.valuefetch.ValueFetcher;
+import org.egov.chat.util.NumeralLocalization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +24,8 @@ public class QuestionGenerator {
     private FixedSetValues fixedSetValues;
     @Autowired
     private ConversationStateRepository conversationStateRepository;
+    @Autowired
+    private NumeralLocalization numeralLocalization;
 
     public JsonNode getQuestion(JsonNode config, JsonNode chatNode) {
 
@@ -31,11 +34,10 @@ public class QuestionGenerator {
         ArrayNode localizationCodesArrayNode = objectMapper.createArrayNode();
         localizationCodesArrayNode.add(localizationCode);
 
-        String question = getOptionsForConfig(config, chatNode);
+        localizationCodesArrayNode.addAll(getOptionsForConfig(config, chatNode));
 
         ObjectNode response = objectMapper.createObjectNode();
         response.put("type", "text");
-        response.put("text", question);
         response.set("localizationCodes", localizationCodesArrayNode);
 
         ((ObjectNode) chatNode).set("response", response);
@@ -47,8 +49,8 @@ public class QuestionGenerator {
     }
 
     // TODO : Re-factor
-    private String getOptionsForConfig(JsonNode config, JsonNode chatNode) {
-        String options = "";
+    private ArrayNode getOptionsForConfig(JsonNode config, JsonNode chatNode) {
+        ArrayNode localizationCodes = objectMapper.createArrayNode();
 
         if(config.get("typeOfValues") != null && config.get("typeOfValues").asText().equalsIgnoreCase("FixedSetValues")) {
 
@@ -70,16 +72,19 @@ public class QuestionGenerator {
                 ArrayNode values = (ArrayNode) questionDetails.get("askedValues");
 
                 for(int i = 0; i < values.size(); i++) {
+                    String tempString = "";
                     JsonNode value = values.get(i);
-                    options += "\n";
+                    tempString += "\n";
                     if(config.get("values").isArray())
-                        options += "Type ";
-                    options += value.get("index").asText();
+                        tempString += "Type ";
+                    tempString += value.get("index").asText();
                     if(config.get("values").isArray())
-                        options += " to ";
+                        tempString += " to ";
                     else
-                        options += ". ";
-                    options += value.get("value").asText();
+                        tempString += ". ";
+
+                    localizationCodes.addAll(numeralLocalization.getLocalizationCodesForStringContainingNumbers(tempString));
+                    localizationCodes.add(value.get("value"));
                 }
             } else {
 
@@ -89,11 +94,13 @@ public class QuestionGenerator {
             }
 
             if(config.get("displayOptionsInExternalLink") != null && config.get("displayOptionsInExternalLink").asBoolean()) {
-                options += valueFetcher.getExternalLinkForParams(config, chatNode);
+                ObjectNode externalLink = objectMapper.createObjectNode();
+                externalLink.put("value", valueFetcher.getExternalLinkForParams(config, chatNode));
+                localizationCodes.add(externalLink);
             }
         }
 
-        return options;
+        return localizationCodes;
     }
 
 }

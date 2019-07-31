@@ -1,5 +1,7 @@
 package org.egov.chat.xternal.valuefetch;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONArray;
@@ -23,6 +25,8 @@ public class ComplainTypeValueFetcher implements ExternalValueFetcher {
     @Autowired
     private RestTemplate restTemplate;
     @Autowired
+    private ObjectMapper objectMapper;
+    @Autowired
     private LocalizationService localizationService;
 
     private String localizationPrefix = "pgr.complaint.category.";
@@ -36,7 +40,7 @@ public class ComplainTypeValueFetcher implements ExternalValueFetcher {
     private String mdmsSearchPath;
 
     @Override
-    public List<String> getValues(ObjectNode params) {
+    public ArrayNode getValues(ObjectNode params) {
         String tenantIdArg = params.get("tenantId").asText();
 
         MasterDetail masterDetail = MasterDetail.builder().name(masterDetailsName).build();
@@ -54,19 +58,12 @@ public class ComplainTypeValueFetcher implements ExternalValueFetcher {
 
         List<String> values = getActiveComplaintTypes(mdmsResValues);
 
-        values = getLocalizedValues(values);
-
-        return values;
+        return getLocalizedCodes(values);
     }
 
     @Override
     public String getCodeForValue(ObjectNode params, String value) {
-        String code = localizationService.getCodeForMessage(value);
-        return getComplaintTypeCodeForLocalizationCode(code);
-    }
-
-    private String getComplaintTypeCodeForLocalizationCode(String code) {
-        return code.substring(code.lastIndexOf(".") + 1);
+        return value.substring(value.lastIndexOf(".") + 1);
     }
 
     @Override
@@ -88,12 +85,14 @@ public class ComplainTypeValueFetcher implements ExternalValueFetcher {
     }
 
 
-    private List<String> getLocalizedValues(List<String> values) {
-        List<String> localizedValues = new ArrayList<>();
+    private ArrayNode getLocalizedCodes(List<String> values) {
+        ArrayNode localizationCodes = objectMapper.createArrayNode();
         for(String value : values) {
-            localizedValues.add(localizationService.getMessageForCode(localizationPrefix + value));
+            ObjectNode localizationCode = objectMapper.createObjectNode();
+            localizationCode.put("code", localizationPrefix + value);
+            localizationCodes.add(localizationCode);
         }
-        return localizedValues;
+        return localizationCodes;
     }
 
 }

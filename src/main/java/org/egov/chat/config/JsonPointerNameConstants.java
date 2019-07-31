@@ -16,4 +16,6 @@ public class JsonPointerNameConstants {
 
     public static final String messageType = "/message/type";
 
+    public static final String locale = "/conversationState/locale";
+
 }

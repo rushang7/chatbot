@@ -11,6 +11,7 @@ import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
+import org.egov.chat.config.JsonPointerNameConstants;
 import org.egov.chat.config.KafkaStreamsConfig;
 import org.egov.chat.util.LocalizationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +59,7 @@ public class LocalizationStream {
     }
 
     public JsonNode localizeMessage(JsonNode chatNode) throws IOException {
-        String locale = chatNode.at("/conversationState/locale").asText();
+        String locale = chatNode.at(JsonPointerNameConstants.locale).asText();
 
         if(chatNode.get("response").has("localizationCodes")) {
             String message = "";

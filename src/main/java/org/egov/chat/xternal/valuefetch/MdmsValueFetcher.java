@@ -1,8 +1,9 @@
 package org.egov.chat.xternal.valuefetch;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import net.minidev.json.JSONArray;
-import org.egov.chat.config.ApplicationProperties;
 import org.egov.chat.service.valuefetch.ExternalValueFetcher;
 import org.egov.common.contract.request.RequestInfo;
 import org.egov.mdms.model.*;
@@ -12,10 +13,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import javax.annotation.PostConstruct;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 @PropertySource("classpath:xternal.properties")
@@ -24,6 +22,8 @@ public class MdmsValueFetcher implements ExternalValueFetcher {
 
     @Autowired
     private RestTemplate restTemplate;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Value("${mdms.service.host}")
     private String mdmsHost;
@@ -31,7 +31,7 @@ public class MdmsValueFetcher implements ExternalValueFetcher {
     private String mdmsSearchPath;
 
     @Override
-    public List<String> getValues(ObjectNode params) {
+    public ArrayNode getValues(ObjectNode params) {
         String tenantIdArg = params.get("tenantId").asText();
         String moduleNameArg = params.get("moduleName").asText();
         String masterDetailsNameArg = params.get("masterDetailsName").asText();
@@ -50,10 +50,12 @@ public class MdmsValueFetcher implements ExternalValueFetcher {
 
         JSONArray mdmsResValues = mdmsRes.get(moduleNameArg).get(masterDetailsNameArg);
 
-        List<String> values = new ArrayList<>();
+        ArrayNode values = objectMapper.createArrayNode();
 
         for(Object mdmsResValue : mdmsResValues) {
-            values.add((String) mdmsResValue);
+            ObjectNode value = objectMapper.createObjectNode();
+            value.put("value", (String) mdmsResValue);
+            values.add(value);
         }
 
         return values;

@@ -11,10 +11,10 @@ import org.egov.chat.config.JsonPointerNameConstants;
 import org.egov.chat.models.ConversationState;
 import org.egov.chat.repository.ConversationStateRepository;
 import org.egov.chat.service.valuefetch.ValueFetcher;
+import org.egov.chat.util.LocalizationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.util.List;
 
 @Slf4j
@@ -29,6 +29,9 @@ public class FixedSetValues {
     @Autowired
     private ConversationStateRepository conversationStateRepository;
     @Autowired
+    private LocalizationService localizationService;
+
+    @Autowired
     private ObjectMapper objectMapper;
 
 
@@ -39,7 +42,7 @@ public class FixedSetValues {
         else
             questionDetails.put("batchSize", Integer.MAX_VALUE);
 
-        List<String> validValues = valueFetcher.getAllValidValues(config, chatNode);
+        ArrayNode validValues = valueFetcher.getAllValidValues(config, chatNode);
         ArrayNode values = objectMapper.valueToTree(validValues);
         questionDetails.putArray("allValues").addAll(values);
 
@@ -74,7 +77,9 @@ public class FixedSetValues {
         if(upperLimit < allValues.size()) {
             ObjectNode value = objectMapper.createObjectNode();
             value.put("index", nextKeywordSymbol);
-            value.put("value", nextKeyword);
+            ObjectNode nextKeywordLocaliztionJson = objectMapper.createObjectNode();
+            nextKeywordLocaliztionJson.put("value", nextKeyword);
+            value.set("value", nextKeywordLocaliztionJson);
             nextSet.add(value);
         }
 
@@ -91,17 +96,17 @@ public class FixedSetValues {
         ConversationState conversationState = getConversationStateForChat(chatNode);
         JsonNode questionDetails = conversationState.getQuestionDetails();
 
-        List<String> validValues;
-        try {
-            validValues = objectMapper.readValue(questionDetails.get("allValues").toString(), List.class);
-        } catch (IOException e) {
-            return null;
-        }
+        ArrayNode allValues = (ArrayNode) questionDetails.get("allValues");
+        ArrayNode validValues = allValues.deepCopy();
 
         if(displayValuesAsOptions) {
             Integer offset = questionDetails.get("offset").asInt();
             Integer batchSize = questionDetails.get("batchSize").asInt();
-            validValues = validValues.subList(0, Math.min(offset + batchSize, validValues.size()));
+            Integer upperLimit = Math.min(offset + batchSize, allValues.size());
+            validValues = objectMapper.createArrayNode();
+            for (int i = 0; i < upperLimit; i++) {
+                validValues.add(allValues.get(i));
+            }
         }
 
         Integer answerIndex = null;
@@ -113,8 +118,12 @@ public class FixedSetValues {
         } else {
             Integer highestFuzzyScoreMatch = 0;
             answerIndex = 0;
-            for(int i = 0; i < validValues.size(); i++) {
-                Integer score = FuzzySearch.ratio(validValues.get(i), answer);
+            String locale = chatNode.at(JsonPointerNameConstants.locale).asText();
+            List<String> localizedValidValues = localizationService.getMessagesForCodes(validValues, locale);
+            for(int i = 0; i < localizedValidValues.size(); i++) {
+                if(localizedValidValues.get(i) == null)
+                    continue;
+                Integer score = FuzzySearch.ratio(localizedValidValues.get(i), answer);
                 if(score > highestFuzzyScoreMatch) {
                     highestFuzzyScoreMatch = score;
                     answerIndex = i;
@@ -129,7 +138,13 @@ public class FixedSetValues {
             ( (ObjectNode) chatNode).put("reQuestion", true);
             finalAnswer = nextKeyword;
         } else {
-            finalAnswer = validValues.get(answerIndex);
+            JsonNode answerLocalizationCode = validValues.get(answerIndex);
+            log.debug("answerLocalizationCode  : " + answerLocalizationCode);
+            if(answerLocalizationCode.has("code"))
+                finalAnswer = answerLocalizationCode.get("code").asText();
+            else if(answerLocalizationCode.has("value"))
+                finalAnswer = answerLocalizationCode.get("value").asText();
+            log.debug("Final Answer : " + finalAnswer);
             finalAnswer = valueFetcher.getCodeForValue(config, chatNode, finalAnswer);
         }
 
@@ -156,26 +171,27 @@ public class FixedSetValues {
         ConversationState conversationState = getConversationStateForChat(chatNode);
         JsonNode questionDetails = conversationState.getQuestionDetails();
 
-        List<String> validValues;
+        ArrayNode allValues = (ArrayNode) questionDetails.get("allValues");
 
-        try {
-            validValues = objectMapper.readValue(questionDetails.get("allValues").toString(), List.class);
-        } catch (IOException e) {
-            return false;
-        }
         if(displayValuesAsOptions && (answer.equalsIgnoreCase(nextKeyword) || answer.equalsIgnoreCase(nextKeywordSymbol))) {
             return true;
         } else if(displayValuesAsOptions && checkIfAnswerIsIndex(answer)) {
             Integer offset = questionDetails.get("offset").asInt();
             Integer batchSize = questionDetails.get("batchSize").asInt();
-            validValues = validValues.subList(0, Math.min(offset + batchSize, validValues.size()));
+            Integer upperLimit = Math.min(offset + batchSize, allValues.size());
+            ArrayNode validValues = objectMapper.createArrayNode();
+            for (int i = 0; i < upperLimit; i++) {
+                validValues.add(allValues.get(i));
+            }
             return checkIfIndexIsValid(answer, validValues);
         } else {
-            return fuzzyMatchAnswerWithValidValues(answer, validValues, config);
+            String locale = chatNode.at(JsonPointerNameConstants.locale).asText();
+            List<String> localizedValidValues = localizationService.getMessagesForCodes(allValues, locale);
+            return fuzzyMatchAnswerWithValidValues(answer, localizedValidValues, config);
         }
     }
 
-    boolean checkIfIndexIsValid(String answer, List<String> validValues) {
+    boolean checkIfIndexIsValid(String answer, ArrayNode validValues) {
         Integer answerInteger = Integer.parseInt(answer);
         if(answerInteger > 0 && answerInteger <= validValues.size())
             return true;
@@ -195,15 +211,5 @@ public class FixedSetValues {
         }
         return false;
     }
-
-
-    public List<String> fuzzyMatchAnswer(JsonNode config, JsonNode chatNode) {
-        return null;
-    }
-
-    public String matchAnswer(JsonNode config, JsonNode chatNode) {
-        return null;
-    }
-
 
 }

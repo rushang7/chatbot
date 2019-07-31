@@ -3,6 +3,7 @@ package org.egov.chat.service.valuefetch;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import org.egov.chat.config.JsonPointerNameConstants;
@@ -11,7 +12,6 @@ import org.egov.chat.repository.MessageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -19,13 +19,16 @@ import java.util.List;
 public class ValueFetcher {
 
     @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
     List<ExternalValueFetcher> externalValueFetchers;
 
     @Autowired
     private MessageRepository messageRepository;
 
-    public List<String> getAllValidValues(JsonNode config, JsonNode chatNode) {
-        List<String> validValues = new ArrayList<>();
+    public ArrayNode getAllValidValues(JsonNode config, JsonNode chatNode) {
+        ArrayNode validValues = objectMapper.createArrayNode();
 
         if(config.get("values").isArray()) {
             validValues = getValuesFromArrayNode(config);
@@ -54,15 +57,17 @@ public class ValueFetcher {
         return externalValueFetcher.createExternalLinkForParams(createParamsToFetchValues(config, chatNode));
     }
 
-    List<String> getValuesFromArrayNode(JsonNode config) {
-        List<String> validValues = new ArrayList<>();
+    ArrayNode getValuesFromArrayNode(JsonNode config) {
+        ArrayNode validValues = objectMapper.createArrayNode();
         for(JsonNode jsonNode : config.get("values")) {
-            validValues.add(jsonNode.asText());
+            ObjectNode value = objectMapper.createObjectNode();
+            value.put("value", jsonNode.asText());
+            validValues.add(value);
         }
         return validValues;
     }
 
-    List<String> getValuesFromExternalSource(JsonNode config, JsonNode chatNode) {
+    ArrayNode getValuesFromExternalSource(JsonNode config, JsonNode chatNode) {
         ExternalValueFetcher externalValueFetcher = getExternalValueFetcher(config);
 
         ObjectNode params = createParamsToFetchValues(config, chatNode);

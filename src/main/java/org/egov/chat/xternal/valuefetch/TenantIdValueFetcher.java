@@ -1,5 +1,7 @@
 package org.egov.chat.xternal.valuefetch;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import net.minidev.json.JSONArray;
 import org.egov.chat.service.valuefetch.ExternalValueFetcher;
@@ -10,13 +12,17 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class TenantIdValueFetcher implements ExternalValueFetcher {
 
     @Autowired
     private RestTemplate restTemplate;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     private String moduleName = "tenant";
     private String masterDetailsName = "tenants";
@@ -28,13 +34,14 @@ public class TenantIdValueFetcher implements ExternalValueFetcher {
 
 
     @Override
-    public List<String> getValues(ObjectNode params) {
-        return getCityName(fetchMdmsData(params));
+    public ArrayNode getValues(ObjectNode params) {
+        String tenantId = params.get("tenantId").asText();
+        return getCityName(fetchMdmsData(tenantId), tenantId);
     }
 
     @Override
     public String getCodeForValue(ObjectNode params, String value) {
-        return getTenantIdCode(fetchMdmsData(params), value);
+        return value;
     }
 
     @Override
@@ -42,14 +49,12 @@ public class TenantIdValueFetcher implements ExternalValueFetcher {
         return null;
     }
 
-    private JSONArray fetchMdmsData(ObjectNode params) {
-        String tenantIdArg = params.get("tenantId").asText();
-
+    private JSONArray fetchMdmsData(String tenantId) {
         MasterDetail masterDetail = MasterDetail.builder().name(masterDetailsName).build();
         ModuleDetail moduleDetail =
                 ModuleDetail.builder().moduleName(moduleName).masterDetails(Collections.singletonList(masterDetail)).build();
         MdmsCriteria mdmsCriteria =
-                MdmsCriteria.builder().tenantId(tenantIdArg).moduleDetails(Collections.singletonList(moduleDetail)).build();
+                MdmsCriteria.builder().tenantId(tenantId).moduleDetails(Collections.singletonList(moduleDetail)).build();
         MdmsCriteriaReq mdmsCriteriaReq = MdmsCriteriaReq.builder().mdmsCriteria(mdmsCriteria).requestInfo(RequestInfo.builder().build()) .build();
 
         MdmsResponse mdmsResponse = restTemplate.postForObject(mdmsHost + mdmsSearchPath, mdmsCriteriaReq, MdmsResponse.class);
@@ -61,12 +66,15 @@ public class TenantIdValueFetcher implements ExternalValueFetcher {
         return mdmsResValues;
     }
 
-    List<String> getCityName(JSONArray mdmsResValues) {
-        List<String> values = new ArrayList<>();
+    ArrayNode getCityName(JSONArray mdmsResValues, String tenantId) {
+        ArrayNode values = objectMapper.createArrayNode();
 
         for(Object mdmsResValue : mdmsResValues) {
+            ObjectNode value = objectMapper.createObjectNode();
             HashMap mdmsValue = (HashMap) mdmsResValue;
-            values.add(mdmsValue.get("name").toString());
+            value.put("code", mdmsValue.get("code").toString());
+            value.put("tenantId", tenantId);
+            values.add(value);
         }
 
         return values;

@@ -16,9 +16,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @PropertySource("classpath:xternal.properties")
@@ -27,6 +25,8 @@ public class LocalityValueFetcher implements ExternalValueFetcher {
 
     @Autowired
     private RestTemplate restTemplate;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Value("${location.service.host}")
     private String locationServiceHost;
@@ -47,7 +47,7 @@ public class LocalityValueFetcher implements ExternalValueFetcher {
     private String requestBodyString = "{\"RequestInfo\":{\"authToken\":\"\"}}";
 
     @Override
-    public List<String> getValues(ObjectNode params) {
+    public ArrayNode getValues(ObjectNode params) {
         return extractLocalities(fetchValues(params));
     }
 
@@ -90,13 +90,15 @@ public class LocalityValueFetcher implements ExternalValueFetcher {
         return locationData;
     }
 
-    List<String> extractLocalities(ObjectNode locationData) {
-        List<String> localities = new ArrayList<>();
+    ArrayNode extractLocalities(ObjectNode locationData) {
+        ArrayNode localities = objectMapper.createArrayNode();
 
         ArrayNode boundries = (ArrayNode) locationData.get("TenantBoundary").get(0).get("boundary");
 
         for(JsonNode boundry : boundries) {
-            localities.add(boundry.get("name").asText());
+            ObjectNode value = objectMapper.createObjectNode();
+            value.put("value", boundry.get("name").asText());
+            localities.add(value);
         }
 
         return localities;

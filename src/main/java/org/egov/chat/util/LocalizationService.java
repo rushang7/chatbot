@@ -104,17 +104,19 @@ public class LocalizationService {
         String tenantId = "";
         Map<String, String> codeToMessageMapping = null;
         for(JsonNode code : localizationCodes) {
+            if(code.has("value")) {
+                values.add(code.get("value").asText());
+                continue;
+            }
+            String newTenantId = code.get("tenantId") != null ? code.get("tenantId").asText() : stateLevelTenantId;
+            if (!newTenantId.equalsIgnoreCase(tenantId)) {
+                tenantId = newTenantId;
+                codeToMessageMapping = fetchLocalizationData(tenantId, locale);
+            }
             if(code.has("templateId"))
                 values.add(templateMessageService.getMessageForTemplate(code, locale));
-            else if(code.has("value"))
-                values.add(code.get("value").asText());
             else {
                 log.debug("Fetching Localization for : " + code.toString());
-                String newTenantId = code.get("tenantId") != null ? code.get("tenantId").asText() : stateLevelTenantId;
-                if (!newTenantId.equalsIgnoreCase(tenantId)) {
-                    tenantId = newTenantId;
-                    codeToMessageMapping = fetchLocalizationData(tenantId, locale);
-                }
                 values.add(codeToMessageMapping.get(code.get("code").asText()));
             }
         }
