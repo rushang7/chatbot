@@ -24,8 +24,6 @@ public class UserService {
     @Autowired
     private CreateNewUserService createNewUserService;
 
-    private Long authTokenExtraValidityThreshold = 600000L;              // 10 minutes
-
     public JsonNode addLoggedInUser(JsonNode chatNode) throws Exception {
         String tenantId = chatNode.at(JsonPointerNameConstants.tenantId).asText();
         String mobileNumber = chatNode.at(JsonPointerNameConstants.mobileNumber).asText();
