@@ -46,4 +46,12 @@ public class FixedSetValuesTest {
         log.info("Match : " + match);
     }
 
+    @Test
+    public void testFuzzyMatchHindi() {
+        String s1 = "अमृतसर";
+        String s2 = "अमतसर";
+        int match = FuzzySearch.ratio(s1, s2);
+        System.out.println(match);
+    }
+
 }
