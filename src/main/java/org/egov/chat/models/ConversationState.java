@@ -5,7 +5,7 @@ import lombok.*;
 
 @Setter
 @Getter
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class ConversationState {
@@ -21,4 +21,6 @@ public class ConversationState {
     private JsonNode questionDetails;
 
     private String locale;
+
+    private Long lastModifiedTime;
 }

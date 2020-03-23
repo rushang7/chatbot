@@ -1,8 +1,7 @@
 package org.egov.chat.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.egov.chat.config.JsonPointerNameConstants;
-import org.egov.chat.models.Message;
+import org.egov.chat.models.EgovChat;
 import org.egov.chat.repository.MessageRepository;
 import org.egov.chat.service.validation.TypeValidator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,19 +17,21 @@ public class AnswerStore {
     @Autowired
     private TypeValidator typeValidator;
 
-    public void saveAnswer(JsonNode config, JsonNode chatNode) {
+    public void saveAnswer(JsonNode config, EgovChat chatNode) {
 
         String nodeId = config.get("name").asText();
-        String conversationId = chatNode.at(JsonPointerNameConstants.conversationId).asText();
-        String messageContent;
-        if(typeValidator.isValid(config, chatNode))
-            messageContent = chatNode.at(JsonPointerNameConstants.messageContent).asText();
-        else
-            return;
+        String conversationId = chatNode.getConversationState().getConversationId();
+        if (!typeValidator.isValid(config, chatNode))
+            chatNode.getMessage().setValid(false);
 
-        Message message = Message.builder().messageId(UUID.randomUUID().toString())
-                .conversationId(conversationId).nodeId(nodeId).messageContent(messageContent).build();
-        messageRepository.insertMessage(message);
+        if (chatNode.getMessage().getMessageContent() == null)
+            chatNode.getMessage().setMessageContent(chatNode.getMessage().getRawInput());
+
+        chatNode.getMessage().setConversationId(conversationId);
+        chatNode.getMessage().setMessageId(UUID.randomUUID().toString());
+        chatNode.getMessage().setNodeId(nodeId);
+
+        messageRepository.insertMessage(chatNode.getMessage());
 
     }
 

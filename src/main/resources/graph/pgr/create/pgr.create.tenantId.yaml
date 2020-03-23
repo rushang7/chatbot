@@ -9,8 +9,9 @@ message: chatbot.messages.pgrCreateTenantId
 
 validationRequired : true
 typeOfValues : FixedSetValues
-displayValuesAsOptions : false
-
+displayValuesAsOptions: true
+numberPrefixLocalizationCode: chatbot.message.numberPrefixLocalizationCode
+numberPostfixLocalizationCode: chatbot.message.numberPostfixLocalizationCode
 values :
   batchSize : 9
   class : org.egov.chat.xternal.valuefetch.TenantIdValueFetcher

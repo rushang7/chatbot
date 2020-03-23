@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
+import org.egov.chat.models.LocalizationCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -13,10 +14,8 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.util.*;
 
 @Slf4j
 @PropertySource("classpath:xternal.properties")
@@ -27,7 +26,6 @@ public class LocalizationService {
     private ObjectMapper objectMapper;
     @Autowired
     private RestTemplate restTemplate;
-
     @Autowired
     private TemplateMessageService templateMessageService;
 
@@ -40,15 +38,13 @@ public class LocalizationService {
     @Value("#{'${supported.locales}'.split(',')}")
     private List<String> supportedLocales;
 
-    private Map<String, Map<String,String>>  codeToMessageMapping;
-    private Map<String, Map<String,String>>  messageToCodeMapping;
+    private Map<String, Map<String, String>> codeToMessageMapping;
 
     @PostConstruct
     public void init() {
         codeToMessageMapping = new HashMap<>();
-        messageToCodeMapping = new HashMap<>();
 
-        for(String locale : supportedLocales) {
+        for (String locale : supportedLocales) {
             UriComponentsBuilder uriComponents = UriComponentsBuilder.fromUriString(localizationHost + localizationSearchPath);
             uriComponents.queryParam("locale", locale);
             uriComponents.queryParam("tenantId", stateLevelTenantId);
@@ -66,7 +62,7 @@ public class LocalizationService {
         Map<String, String> codeToMessageMappingForLocale = new HashMap<>();
         Map<String, String> messageToCodeMappingForLocale = new HashMap<>();
 
-        for(JsonNode localizationMessage : localizationMessages) {
+        for (JsonNode localizationMessage : localizationMessages) {
             String code = localizationMessage.get("code").asText();
             String message = localizationMessage.get("message").asText();
 
@@ -75,7 +71,6 @@ public class LocalizationService {
         }
 
         codeToMessageMapping.put(locale, codeToMessageMappingForLocale);
-        messageToCodeMapping.put(locale, messageToCodeMappingForLocale);
     }
 
     public Map<String, String> fetchLocalizationData(String tenantId, String locale) {
@@ -89,7 +84,7 @@ public class LocalizationService {
         ArrayNode localizationMessages = (ArrayNode) localizationData.get("messages");
 
         Map<String, String> codeToMessageMapping = new HashMap<>();
-        for(JsonNode localizationMessage : localizationMessages) {
+        for (JsonNode localizationMessage : localizationMessages) {
             String code = localizationMessage.get("code").asText();
             String message = localizationMessage.get("message").asText();
 
@@ -99,35 +94,33 @@ public class LocalizationService {
         return codeToMessageMapping;
     }
 
-    public List<String> getMessagesForCodes(ArrayNode localizationCodes, String locale) {
+    public List<String> getMessagesForCodes(List<LocalizationCode> localizationCodes, String locale) throws IOException {
         List<String> values = new ArrayList<>();
-        String tenantId = "";
-        Map<String, String> codeToMessageMapping = null;
-        for(JsonNode code : localizationCodes) {
-            if(code.has("value")) {
-                values.add(code.get("value").asText());
+        String tenantId = stateLevelTenantId;
+        Map<String, String> codeToMessageMapping = this.codeToMessageMapping.get(locale);
+        for (LocalizationCode code : localizationCodes) {
+            if (code.getValue() != null) {
+                values.add(code.getValue());
                 continue;
             }
-            String newTenantId = code.get("tenantId") != null ? code.get("tenantId").asText() : stateLevelTenantId;
+            String newTenantId = code.getTenantId() != null ? code.getTenantId() : stateLevelTenantId;
             if (!newTenantId.equalsIgnoreCase(tenantId)) {
                 tenantId = newTenantId;
                 codeToMessageMapping = fetchLocalizationData(tenantId, locale);
             }
-            if(code.has("templateId"))
+            if (code.getTemplateId() != null)
                 values.add(templateMessageService.getMessageForTemplate(code, locale));
             else {
                 log.debug("Fetching Localization for : " + code.toString());
-                values.add(codeToMessageMapping.get(code.get("code").asText()));
+                values.add(codeToMessageMapping.get(code.getCode()));
             }
         }
         log.debug("Localized values : " + values.toString());
         return values;
     }
 
-    public String getMessageForCode(JsonNode localizationCode, String locale) {
-        ArrayNode arrayNode = objectMapper.createArrayNode();
-        arrayNode.add(localizationCode);
-        return getMessagesForCodes(arrayNode, locale).get(0);
+    public String getMessageForCode(LocalizationCode localizationCode, String locale) throws IOException {
+        return getMessagesForCodes(Collections.singletonList(localizationCode), locale).get(0);
     }
 
     public String getMessageForCode(String code) {
@@ -138,13 +131,4 @@ public class LocalizationService {
         return codeToMessageMapping.get(locale).get(code);
     }
 
-    @Deprecated
-    public String getCodeForMessage(String message) {
-        return getCodeForMessage(message, "en_IN");
-    }
-
-    @Deprecated
-    public String getCodeForMessage(String message, String locale) {
-        return messageToCodeMapping.get(locale).get(message);
-    }
 }

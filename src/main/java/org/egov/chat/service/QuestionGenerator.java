@@ -3,14 +3,19 @@ package org.egov.chat.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
-import org.egov.chat.config.JsonPointerNameConstants;
+import org.egov.chat.models.EgovChat;
+import org.egov.chat.models.LocalizationCode;
+import org.egov.chat.models.Response;
 import org.egov.chat.repository.ConversationStateRepository;
 import org.egov.chat.service.valuefetch.ValueFetcher;
 import org.egov.chat.util.NumeralLocalization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -27,20 +32,24 @@ public class QuestionGenerator {
     @Autowired
     private NumeralLocalization numeralLocalization;
 
-    public JsonNode getQuestion(JsonNode config, JsonNode chatNode) {
+    public EgovChat fillQuestion(JsonNode config, EgovChat chatNode) throws IOException {
+        List<LocalizationCode> localizationCodeArray = new ArrayList<>();
 
-        ObjectNode localizationCode = objectMapper.createObjectNode();
-        localizationCode.put("code", getQuesitonForConfig(config));
-        ArrayNode localizationCodesArrayNode = objectMapper.createArrayNode();
-        localizationCodesArrayNode.add(localizationCode);
+        if (chatNode.getResponse() == null) {
+            Response response = Response.builder().timestamp(System.currentTimeMillis()).type("text").nodeId(config.get("name").asText())
+                    .localizationCodes(localizationCodeArray).build();
+            chatNode.setResponse(response);
+        } else {
+            localizationCodeArray = chatNode.getResponse().getLocalizationCodes();
+            LocalizationCode newLine = LocalizationCode.builder().value("\n").build();
+            localizationCodeArray.add(newLine);
+            localizationCodeArray.add(newLine);
+        }
 
-        localizationCodesArrayNode.addAll(getOptionsForConfig(config, chatNode));
+        LocalizationCode localizationCode = LocalizationCode.builder().code(getQuesitonForConfig(config)).build();
+        localizationCodeArray.add(localizationCode);
+        localizationCodeArray.addAll(getOptionsForConfig(config, chatNode));
 
-        ObjectNode response = objectMapper.createObjectNode();
-        response.put("type", "text");
-        response.set("localizationCodes", localizationCodesArrayNode);
-
-        ((ObjectNode) chatNode).set("response", response);
         return chatNode;
     }
 
@@ -49,54 +58,60 @@ public class QuestionGenerator {
     }
 
     // TODO : Re-factor
-    private ArrayNode getOptionsForConfig(JsonNode config, JsonNode chatNode) {
-        ArrayNode localizationCodes = objectMapper.createArrayNode();
+    private List<LocalizationCode> getOptionsForConfig(JsonNode config, EgovChat chatNode) throws IOException {
+        List<LocalizationCode> localizationCodes = new ArrayList<>();
 
-        if(config.get("typeOfValues") != null && config.get("typeOfValues").asText().equalsIgnoreCase("FixedSetValues")) {
+        if (config.get("typeOfValues") != null && config.get("typeOfValues").asText().equalsIgnoreCase("FixedSetValues")) {
 
-            if(config.get("displayValuesAsOptions") != null && config.get("displayValuesAsOptions").asText().equalsIgnoreCase("true")) {
+            if (config.get("displayValuesAsOptions") != null && config.get("displayValuesAsOptions").asText().equalsIgnoreCase("true")) {
 
-                boolean reQuestion = chatNode.get("reQuestion") != null && chatNode.get("reQuestion").asBoolean();
+                boolean reQuestion = chatNode.isAskForNextBatch();
                 JsonNode questionDetails;
-                if(reQuestion) {
+                if (reQuestion) {
                     questionDetails = conversationStateRepository.getConversationStateForId(
-                            chatNode.at(JsonPointerNameConstants.conversationId).asText()).getQuestionDetails();
+                            chatNode.getConversationState().getConversationId()).getQuestionDetails();
                 } else {
                     questionDetails = fixedSetValues.getAllValidValues(config, chatNode);
                 }
 
                 questionDetails = fixedSetValues.getNextSet(questionDetails);
 
-                ( (ObjectNode) chatNode).set("questionDetails", questionDetails);
+                chatNode.getNextConversationState().setQuestionDetails(questionDetails);
 
                 ArrayNode values = (ArrayNode) questionDetails.get("askedValues");
-
-                for(int i = 0; i < values.size(); i++) {
-                    String tempString = "";
+                String numberPrefixLocalizationCode = null;
+                String numberNameSeparatorLocalizationCode = null;
+                if (config.has("numberPrefixLocalizationCode"))
+                    numberPrefixLocalizationCode = config.get("numberPrefixLocalizationCode").asText();
+                if (config.has("numberPostfixLocalizationCode"))
+                    numberNameSeparatorLocalizationCode = config.get("numberPostfixLocalizationCode").asText();
+                // TODO : Currently using * for Bold
+                for (int i = 0; i < values.size(); i++) {
+                    LocalizationCode newLineCode = LocalizationCode.builder().value("\n").build();
+                    localizationCodes.add(newLineCode);
+                    if (numberPrefixLocalizationCode != null) {
+                        LocalizationCode prefixCode = LocalizationCode.builder().code(numberPrefixLocalizationCode).build();
+                        localizationCodes.add(prefixCode);
+                    }
                     JsonNode value = values.get(i);
-                    tempString += "\n";
-                    if(config.get("values").isArray())
-                        tempString += "Type ";
-                    tempString += value.get("index").asText();
-                    if(config.get("values").isArray())
-                        tempString += " to ";
-                    else
-                        tempString += ". ";
-
+                    String tempString = value.get("index").asText();
                     localizationCodes.addAll(numeralLocalization.getLocalizationCodesForStringContainingNumbers(tempString));
-                    localizationCodes.add(value.get("value"));
+                    if (numberNameSeparatorLocalizationCode != null) {
+                        LocalizationCode separatorCode = LocalizationCode.builder().code(numberNameSeparatorLocalizationCode).build();
+                        localizationCodes.add(separatorCode);
+                    }
+                    LocalizationCode localizationCode = objectMapper.convertValue(value.get("value"), LocalizationCode.class);
+                    localizationCodes.add(localizationCode);
                 }
             } else {
 
                 JsonNode questionDetails = fixedSetValues.getAllValidValues(config, chatNode);
-                ( (ObjectNode) chatNode).set("questionDetails", questionDetails);
+                chatNode.getNextConversationState().setQuestionDetails(questionDetails);
 
             }
 
-            if(config.get("displayOptionsInExternalLink") != null && config.get("displayOptionsInExternalLink").asBoolean()) {
-                ObjectNode externalLink = objectMapper.createObjectNode();
-                externalLink.put("value", valueFetcher.getExternalLinkForParams(config, chatNode));
-                localizationCodes.add(externalLink);
+            if (config.get("displayOptionsInExternalLink") != null && config.get("displayOptionsInExternalLink").asBoolean()) {
+                localizationCodes.add(LocalizationCode.builder().value(valueFetcher.getExternalLinkForParams(config, chatNode)).build());
             }
         }
 

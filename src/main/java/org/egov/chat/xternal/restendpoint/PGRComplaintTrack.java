@@ -10,6 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONArray;
 import org.egov.chat.service.restendpoint.RestEndpoint;
 import org.egov.chat.util.NumeralLocalization;
+import org.egov.chat.util.URLShorteningSevice;
+import org.egov.tracer.model.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -18,7 +20,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
@@ -33,7 +34,8 @@ public class PGRComplaintTrack implements RestEndpoint {
     private RestTemplate restTemplate;
     @Autowired
     private ObjectMapper objectMapper;
-
+    @Autowired
+    private URLShorteningSevice urlShorteningService;
     @Autowired
     private NumeralLocalization numeralLocalization;
 
@@ -41,7 +43,9 @@ public class PGRComplaintTrack implements RestEndpoint {
 
     private String trackComplaintHeaderLocalizationCode = "chatbot.message.pgrTrackComplaintEndHeader";
     private String complaintSummaryTemplateLocalizationCode = "chatbot.template.pgrTrackComplaintSummary";
-
+    private String noComplaintFoundMessage = "chatbot.message.noComplaintFoundMessage";
+    private String messageWhenComplaintsExistsCode = "chatbot.message.trackend.exist";
+    private String pgrShowComplaintForStatusArray[] = {"rejected", "resolved", "assigned", "open", "reassignrequested"};
     @Value("${egov.external.host}")
     private String egovExternalHost;
     @Value("${pgr.service.host}")
@@ -51,65 +55,57 @@ public class PGRComplaintTrack implements RestEndpoint {
     @Value("${pgr.recent.complaints.count}")
     private Integer numberOfRecentComplaints;
 
+    private String pgrStatusLocalisationPrefix = "chatbot.pgr.";
     String pgrRequestBody = "{\"RequestInfo\":{\"authToken\":\"\",\"userInfo\":\"\"}}";
 
     @Override
     public ObjectNode getMessageForRestCall(ObjectNode params) throws Exception {
         String tenantId = params.get("tenantId").asText();
         String authToken = params.get("authToken").asText();
+        String mobileNumber = params.get("mobileNumber").asText();
         DocumentContext userInfo = JsonPath.parse(params.get("userInfo").asText());
 
         DocumentContext request = JsonPath.parse(pgrRequestBody);
         request.set("$.RequestInfo.authToken", authToken);
-        request.set("$.RequestInfo.userInfo",  userInfo.json());
+        request.set("$.RequestInfo.userInfo", userInfo.json());
 
         UriComponentsBuilder uriComponents = UriComponentsBuilder.fromUriString(pgrHost + pgrSearchComplaintPath);
         uriComponents.queryParam("tenantId", tenantId);
         uriComponents.queryParam("noOfRecords", numberOfRecentComplaints);
-
-        JsonNode requestObject = null;
-        try {
-            requestObject = objectMapper.readTree(request.jsonString());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
+        uriComponents.queryParam("status", pgrShowComplaintForStatusArray);
+        JsonNode requestObject = objectMapper.readTree(request.jsonString());
         ObjectNode responseMessage = objectMapper.createObjectNode();
         responseMessage.put("type", "text");
-        try {
-            ResponseEntity<ObjectNode> response = restTemplate.postForEntity(uriComponents.buildAndExpand().toUri(),
-                    requestObject, ObjectNode.class);
-            responseMessage = makeMessageForResponse(response);
-
-        } catch (Exception e) {
-            responseMessage.put("text", "Error occured");
-        }
-
+        ResponseEntity<ObjectNode> response = restTemplate.postForEntity(uriComponents.buildAndExpand().toUri(),
+                requestObject, ObjectNode.class);
+        responseMessage = makeMessageForResponse(response, mobileNumber);
+        responseMessage.put("timestamp", System.currentTimeMillis());
         return responseMessage;
     }
 
-    private ObjectNode makeMessageForResponse(ResponseEntity<ObjectNode> responseEntity) throws UnsupportedEncodingException {
+    private ObjectNode makeMessageForResponse(ResponseEntity<ObjectNode> responseEntity, String mobileNumber) throws UnsupportedEncodingException {
 
         ObjectNode responseMessage = objectMapper.createObjectNode();
         responseMessage.put("type", "text");
 
         ArrayNode localizationCodesArrayNode = objectMapper.createArrayNode();
 
-        if(responseEntity.getStatusCode().is2xxSuccessful()) {
+        if (responseEntity.getStatusCode().is2xxSuccessful()) {
 
             DocumentContext documentContext = JsonPath.parse(responseEntity.getBody().toString());
 
-            Integer numberOfServices = (Integer) ( (JSONArray) documentContext.read("$..services.length()")) .get(0);
+            Integer numberOfServices = (Integer) ((JSONArray) documentContext.read("$..services.length()")).get(0);
 
-            if(numberOfServices > 0) {
+            if (numberOfServices > 0) {
                 ObjectNode trackComplaintHeader = objectMapper.createObjectNode();
                 trackComplaintHeader.put("code", trackComplaintHeaderLocalizationCode);
                 localizationCodesArrayNode.add(trackComplaintHeader);
 
                 for (int i = 0; i < numberOfServices; i++) {
-                    if(numberOfServices > 1) {
+                    if (numberOfServices > 1) {
                         String value = "\n\n*" + (i + 1) + ".* ";
-                        localizationCodesArrayNode.addAll(numeralLocalization.getLocalizationCodesForStringContainingNumbers(value));
+                        ArrayNode localisationCodes = objectMapper.valueToTree(numeralLocalization.getLocalizationCodesForStringContainingNumbers(value));
+                        localizationCodesArrayNode.addAll(localisationCodes);
                     } else {
                         ObjectNode valueString = objectMapper.createObjectNode();
                         valueString.put("value", "\n");
@@ -124,7 +120,7 @@ public class PGRComplaintTrack implements RestEndpoint {
                     ObjectNode params = objectMapper.createObjectNode();
 
                     String complaintNumber = documentContext.read("$.services.[" + i + "].serviceRequestId");
-                    params.set("complaintNumber", numeralLocalization.getLocalizationCodesForStringContainingNumbers(complaintNumber));
+                    params.set("complaintNumber", objectMapper.valueToTree(numeralLocalization.getLocalizationCodesForStringContainingNumbers(complaintNumber)));
 
                     String complaintCategory = documentContext.read("$.services.[" + i + "].serviceCode");
                     param = objectMapper.createObjectNode();
@@ -133,32 +129,45 @@ public class PGRComplaintTrack implements RestEndpoint {
 
                     Date createdDate = new Date((long) documentContext.read("$.services.[" + i + "].auditDetails.createdTime"));
                     String filedDate = getDateFromTimestamp(createdDate);
-                    params.set("filedDate", numeralLocalization.getLocalizationCodesForStringContainingNumbers(filedDate));
+                    params.set("filedDate", objectMapper.valueToTree(numeralLocalization.getLocalizationCodesForStringContainingNumbers(filedDate)));
 
                     String status = documentContext.read("$.services.[" + i + "].status");
                     param = objectMapper.createObjectNode();
-                    param.put("value", status);
+                    param.put("code", pgrStatusLocalisationPrefix + status);
                     params.set("status", param);
 
-                    String encodedPath = URLEncoder.encode( documentContext.read("$.services.[" + i + "].serviceRequestId"), "UTF-8" );
-                    String url = egovExternalHost + "/citizen/complaint-details/" + encodedPath;
+                    String encodedPath = URLEncoder.encode(documentContext.read("$.services.[" + i + "].serviceRequestId"), "UTF-8");
+                    String url = egovExternalHost + "citizen/otpLogin?mobileNo=" + mobileNumber + "&redirectTo=complaint-details/" + encodedPath + "?source=whatsapp";
+                    String encodedURL = urlShorteningService.shortenURL(url);
                     param = objectMapper.createObjectNode();
-                    param.put("value", url);
+                    param.put("value", "\n" + encodedURL);
                     params.set("url", param);
 
                     template.set("params", params);
 
                     localizationCodesArrayNode.add(template);
                 }
+                ObjectNode localizationCode = objectMapper.createObjectNode();
+                localizationCode.put("code", messageWhenComplaintsExistsCode);
+                localizationCodesArrayNode.add(localizationCode);
+
+                ObjectNode localizationCodeForLink = objectMapper.createObjectNode();
+                String complaintViewURL = egovExternalHost + "citizen/otpLogin?mobileNo=" + mobileNumber + "&redirectTo=my-complaints?source=whatsapp";
+                String shortenedcomplaintViewURL = urlShorteningService.shortenURL(complaintViewURL);
+                localizationCodeForLink.put("value", shortenedcomplaintViewURL);
+                localizationCodesArrayNode.add(localizationCodeForLink);
                 responseMessage.set("localizationCodes", localizationCodesArrayNode);
             } else {
-                String message = "No complaints to display";
-                responseMessage.put("text", message);
+                ObjectNode localizationCode = objectMapper.createObjectNode();
+                localizationCode.put("code", noComplaintFoundMessage);
+                localizationCodesArrayNode.add(localizationCode);
+                responseMessage.set("localizationCodes", localizationCodesArrayNode);
             }
 
 
         } else {
-            responseMessage.put("text", "Error Occured");
+            log.error("Exception in PGR search", responseEntity.toString());
+            throw new CustomException("PGR_SEARCH_ERROR", "Exception while searching PGR complaint " + responseEntity.toString());
         }
 
         return responseMessage;

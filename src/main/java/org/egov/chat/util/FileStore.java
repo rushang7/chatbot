@@ -5,8 +5,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.tika.mime.MimeTypes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -52,9 +50,6 @@ public class FileStore {
     @Value("${state.level.tenant.id}")
     private String stateLevelTenantId;
 
-    @Value("${karix.authentication.token}")
-    private String karixAuthenticationToken;
-
     public String downloadAndStore(String getLink) {
         String filename = FilenameUtils.getName(getLink);
         return downloadAndStore(getLink, filename);
@@ -64,15 +59,25 @@ public class FileStore {
         return downloadAndStore(getLink, filename, stateLevelTenantId, moduleName);
     }
 
+    public String convertFromBase64AndStore(String imageInBase64String) throws IOException {
+        String tmpFileName = "pgr-whatsapp-" + System.currentTimeMillis() + ".png";
+        File tempFile = new File(tmpFileName);
+        imageInBase64String = imageInBase64String.replaceAll(" ", "+");
+        byte[] bytes = Base64.getDecoder().decode(imageInBase64String);
+        FileUtils.writeByteArrayToFile(tempFile, bytes);
+        String fileStoreId = saveToFileStore(tempFile);
+        tempFile.delete();
+        return fileStoreId;
+    }
+
     public String downloadAndStore(String getLink, String filename, String tenantId, String module) {
         try {
             File tempFile = getFileAt(getLink, filename);
             String fileStoreId = saveToFileStore(tempFile, tenantId, module);
             tempFile.delete();
             return fileStoreId;
-        }catch (Exception e){
-            log.error("Get File failed");
-            log.error(e.getMessage());
+        } catch (Exception e) {
+            log.error("Get File failed", e);
         }
         return null;
     }
@@ -93,18 +98,10 @@ public class FileStore {
 
         HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(formData, headers);
 
-        try {
-            ResponseEntity<ObjectNode> response = restTemplate.exchange (fileStoreHost + fileStorePutEndpoint,
-                    HttpMethod.POST, request, ObjectNode.class);
-            log.debug("File Store response : " + response.getBody().toString());
-
-            return response.getBody().get("files").get(0).get("fileStoreId").asText();
-        } catch (Exception e) {
-            log.error("Error in file store save request");
-            log.error(e.getMessage());
-        }
-
-        return null;
+        ResponseEntity<ObjectNode> response = restTemplate.exchange(fileStoreHost + fileStorePutEndpoint,
+                HttpMethod.POST, request, ObjectNode.class);
+        log.debug("File Store response : " + response.getBody().toString());
+        return response.getBody().get("files").get(0).get("fileStoreId").asText();
     }
 
     public File getFileForFileStoreId(String fileStoreId) throws IOException {
@@ -112,7 +109,7 @@ public class FileStore {
     }
 
     public File getFileForFileStoreId(String fileStoreId, String tenantId) throws IOException {
-        if(fileStoreId.length() > 40) {                     // TODO : Check if direct link provided (If length > 40 then direct link is provided)
+        if (fileStoreId.length() > 40) {                     // TODO : Check if direct link provided (If length > 40 then direct link is provided)
             String fileURL = fileStoreId;
             String refinedURL = getRefinedFileURL(fileURL);
             String filename = FilenameUtils.getName(refinedURL);
@@ -126,14 +123,14 @@ public class FileStore {
 
         ResponseEntity<ObjectNode> response = restTemplate.getForEntity(url, ObjectNode.class);
 
-        String fileURL = getRefinedFileURL( response.getBody().get(fileStoreId).asText() );
+        String fileURL = getRefinedFileURL(response.getBody().get(fileStoreId).asText());
         String filename = FilenameUtils.getName(fileURL);
         filename = filename.substring(13, filename.indexOf("?"));       // TODO : 13 characters set by fileStore service
         return getFileAt(fileURL, filename);
     }
 
     public String getRefinedFileURL(String fileURL) {
-        if(fileURL.contains(",")) {             // TODO : Because fileStore service returns , separated list of files
+        if (fileURL.contains(",")) {             // TODO : Because fileStore service returns , separated list of files
             return fileURL.substring(0, fileURL.indexOf(","));
         }
         return fileURL;
@@ -150,21 +147,4 @@ public class FileStore {
         return new String(Base64.getEncoder().encode(FileUtils.readFileToByteArray(file)));
     }
 
-    public String downloadFromKarixAndStore(String getLink) throws Exception {
-        URL url = new URL(getLink);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("GET");
-        conn.setRequestProperty("Authentication", karixAuthenticationToken);
-        conn.setDoOutput(true);
-
-        InputStream inputStream = conn.getInputStream();
-        String ext = MimeTypes.getDefaultMimeTypes().forName(conn.getContentType()).getExtension();
-        File file = File.createTempFile(moduleName, ext);
-        FileOutputStream fileOutputStream = new FileOutputStream(file);
-        IOUtils.copy(inputStream, fileOutputStream);
-
-        String fileStoreId = saveToFileStore(file);
-        file.delete();
-        return fileStoreId;
-    }
 }

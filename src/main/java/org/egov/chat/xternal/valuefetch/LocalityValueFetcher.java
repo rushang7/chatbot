@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import org.egov.chat.service.valuefetch.ExternalValueFetcher;
+import org.egov.chat.util.URLShorteningSevice;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -37,10 +38,11 @@ public class LocalityValueFetcher implements ExternalValueFetcher {
     private String egovExternalHost;
     @Value("${locality.options.path}")
     private String localityOptionsPath;
-
+    @Autowired
+    private URLShorteningSevice urlShorteningSevice;
 
     private Map<String, String> defaultQueryParams = new HashMap<String, String>() {{
-        put("hierarchyTypeCode","ADMIN");
+        put("hierarchyTypeCode", "ADMIN");
         put("boundaryType", "Locality");
     }};
 
@@ -61,7 +63,9 @@ public class LocalityValueFetcher implements ExternalValueFetcher {
         String mobile = params.get("recipient").asText();
         String tenantId = params.get("tenantId").asText();
 
-        return egovExternalHost + localityOptionsPath + "?mobile=" + mobile + "&tenantId=" + tenantId;
+        String url = egovExternalHost + localityOptionsPath + "?phone=" + mobile + "&tenantId=" + tenantId;
+        String shortenedURL = urlShorteningSevice.shortenURL(url);
+        return shortenedURL;
     }
 
     private ObjectNode fetchValues(ObjectNode params) {
@@ -95,7 +99,7 @@ public class LocalityValueFetcher implements ExternalValueFetcher {
 
         ArrayNode boundries = (ArrayNode) locationData.get("TenantBoundary").get(0).get("boundary");
 
-        for(JsonNode boundry : boundries) {
+        for (JsonNode boundry : boundries) {
             ObjectNode value = objectMapper.createObjectNode();
             value.put("value", boundry.get("name").asText());
             localities.add(value);
@@ -108,9 +112,9 @@ public class LocalityValueFetcher implements ExternalValueFetcher {
 
         ArrayNode boundaryData = (ArrayNode) locationData.get("TenantBoundary").get(0).get("boundary");
 
-        for(JsonNode boundary : boundaryData) {
+        for (JsonNode boundary : boundaryData) {
             String currentLocalityName = boundary.get("name").asText();
-            if(currentLocalityName.equalsIgnoreCase(locality)) {
+            if (currentLocalityName.equalsIgnoreCase(locality)) {
                 return boundary.get("code").asText();
             }
         }

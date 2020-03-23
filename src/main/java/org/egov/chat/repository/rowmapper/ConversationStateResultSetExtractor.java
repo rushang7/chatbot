@@ -23,7 +23,7 @@ public class ConversationStateResultSetExtractor implements ResultSetExtractor<C
 
     @Override
     public ConversationState extractData(ResultSet resultSet) throws SQLException, DataAccessException {
-        if(resultSet.next())
+        if (resultSet.next())
             return ConversationState.builder()
                     .conversationId(resultSet.getString("conversation_id"))
                     .userId(resultSet.getString("user_id"))
@@ -31,18 +31,19 @@ public class ConversationStateResultSetExtractor implements ResultSetExtractor<C
                     .questionDetails(getJsonValue((PGobject) resultSet.getObject("question_details")))
                     .active(resultSet.getBoolean("active"))
                     .locale(resultSet.getString("locale"))
+                    .lastModifiedTime(resultSet.getLong("last_modified_time"))
                     .build();
         return null;
     }
 
-    private JsonNode getJsonValue(PGobject pGobject){
+    private JsonNode getJsonValue(PGobject pGobject) {
         try {
-            if(Objects.isNull(pGobject) || Objects.isNull(pGobject.getValue()))
+            if (Objects.isNull(pGobject) || Objects.isNull(pGobject.getValue()))
                 return null;
             else
-                return objectMapper.readTree( pGobject.getValue());
+                return objectMapper.readTree(pGobject.getValue());
         } catch (IOException e) {
-            throw new CustomException("SERVER_ERROR","Exception occurred while parsing the draft json : "+ e
+            throw new CustomException("SERVER_ERROR", "Exception occurred while parsing the draft json : " + e
                     .getMessage());
         }
     }

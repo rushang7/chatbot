@@ -1,29 +1,50 @@
 package org.egov.chat.pre.controller;
 
-import org.egov.chat.pre.formatter.karix.KarixRequestFormatter;
-import org.egov.chat.pre.service.TenantIdEnricher;
-import org.egov.chat.pre.service.UserDataEnricher;
+import com.fasterxml.jackson.databind.JsonNode;
+import lombok.extern.slf4j.Slf4j;
+import org.egov.chat.pre.service.MessageWebhook;
+import org.egov.chat.pre.service.PreChatbotStream;
+import org.egov.chat.util.KafkaTopicCreater;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
+import java.util.Map;
 
-@Controller
+@Slf4j
+@RestController
 public class PreChatController {
 
     @Autowired
-    private KarixRequestFormatter karixRequestFormatter;
+    private MessageWebhook messageWebhook;
     @Autowired
-    private TenantIdEnricher tenantIdEnricher;
+    private PreChatbotStream preChatbotStream;
     @Autowired
-    private UserDataEnricher userDataEnricher;
+    private KafkaTopicCreater kafkaTopicCreater;
 
     @PostConstruct
     public void initPreChatbotStreams() {
-        karixRequestFormatter.startRequestFormatterStream("whatsapp-received-messages",
-                "transformed-input-messages", "chatbot-error-messages");
-        tenantIdEnricher.startTenantEnricherStream("transformed-input-messages", "tenant-enriched-messages");
-        userDataEnricher.startUserDataStream("tenant-enriched-messages", "input-messages");
+        kafkaTopicCreater.createTopic("transformed-input-messages");
+        kafkaTopicCreater.createTopic("chatbot-error-messages");
+        kafkaTopicCreater.createTopic("input-messages");
+
+        preChatbotStream.startPreChatbotStream("transformed-input-messages", "input-messages");
+    }
+
+    @RequestMapping(value = "/messages", method = RequestMethod.POST)
+    public ResponseEntity<Object> receiveMessage(
+            @RequestParam Map<String, String> params) throws Exception {
+        return new ResponseEntity<>(messageWebhook.receiveMessage(params), HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/messages", method = RequestMethod.GET)
+    public ResponseEntity<Object> getMessage(@RequestParam Map<String, String> queryParams) throws Exception {
+        return new ResponseEntity<>(messageWebhook.receiveMessage(queryParams), HttpStatus.OK );
     }
 
 }
